@@ -12,10 +12,10 @@
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
         
-        /* SOLUÇÃO DEFINITIVA PARA O BOTÃO OK NÃO SAIR DA TELA */
+        /* Ajuste do formulário para o botão OK não fugir */
         .grid-form-jogadores {
             display: grid;
-            grid-template-columns: 1fr 55px 55px; /* Nome ganha tudo, GT 55px, OK 55px */
+            grid-template-columns: 1fr 55px 55px;
             gap: 8px;
             width: 100%;
         }
@@ -58,7 +58,7 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <select id="modo-ponto" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-xs font-bold text-emerald-400 outline-none">
-                                <option value="normal">PONTOS NORMAIS</option>
+                                <option value="normal">NORMAL</option>
                                 <option value="chuva">SÓ VITÓRIA</option>
                                 <option value="amistoso">AMISTOSO</option>
                             </select>
