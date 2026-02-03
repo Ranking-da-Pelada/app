@@ -229,6 +229,27 @@
             await batch.commit(); location.reload();
         }
 
+        window.excluirPartida = async (id) => {
+            if (confirm("Excluir esta partida e ESTORNAR os pontos dos jogadores?")) {
+                const pSnap = todasAsPartidas.find(p => p.id === id);
+                if (!pSnap) return;
+
+                let batch = writeBatch(db);
+                const { vencedor, modo, branco, preto } = pSnap;
+
+                if (modo !== 'amistoso') {
+                    const win = vencedor === 'branco' ? branco : preto;
+                    const lose = vencedor === 'branco' ? preto : branco;
+
+                    win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
+                    if (modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
+                }
+
+                batch.delete(doc(db, "partidas", id));
+                await batch.commit(); location.reload();
+            }
+        };
+
         window.resetarTudo = async () => { if(confirm("Zerar ranking?")) { const batch = writeBatch(db); cacheJogadores.forEach(j => batch.update(doc(db, "jogadores", j.id), { v: 0, d: 0, saldo: 0 })); todasAsPartidas.forEach(p => batch.delete(doc(db, "partidas", p.id))); await batch.commit(); location.reload(); } }
         window.removerDaLista = (id, tagsId) => { if(tagsId === 'tags-branco') timeB = timeB.filter(x => x !== id); else timeP = timeP.filter(x => x !== id); renderizarTags(); };
         function renderizarTags() {
@@ -254,7 +275,6 @@
         window.toggleVis = async (id, s) => { await updateDoc(doc(db, "jogadores", id), { visivel: !s }); location.reload(); };
         window.prepararEdicao = (id, n, a) => { document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; document.getElementById('add-apelido').value = a; };
         window.excluirJogador = async (id) => { if(confirm("Eliminar jogador?")) { await deleteDoc(doc(db, "jogadores", id)); location.reload(); } };
-        window.excluirPartida = async (id) => { if(confirm("Excluir esta partida? Os pontos não serão estornados automaticamente.")) { await deleteDoc(doc(db, "partidas", id)); location.reload(); } };
         init();
     </script>
 </body>
