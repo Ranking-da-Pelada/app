@@ -12,7 +12,6 @@
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
         .grid-form-jogadores { display: grid; grid-template-columns: 1fr 50px 50px; gap: 6px; width: 100%; }
-        .grid-form-jogadores input { min-width: 0; }
         .player-tag { cursor: pointer; transition: all 0.2s; }
         .player-tag:hover { background: #ef4444; color: white; }
     </style>
@@ -129,12 +128,10 @@
         }
 
         async function carregarDados() {
-            // 1. Carregar Partidas para calcular o P dinamicamente
             const snapP = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
             todasAsPartidas = [];
             snapP.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
 
-            // 2. Carregar Jogadores
             const snapJ = await getDocs(collection(db, "jogadores"));
             const lista = document.getElementById('lista-jogadores'), ranking = document.getElementById('ranking-body');
             lista.innerHTML = ''; ranking.innerHTML = ''; 
@@ -143,21 +140,33 @@
             snapJ.forEach(d => {
                 const j = d.data();
                 const jId = d.id;
-                // Calcula P (partidas) para desempate
-                const pj = todasAsPartidas.filter(p => p.branco.includes(jId) || p.preto.includes(jId)).length;
-                cacheJogadores.push({id: jId, ...j, totalJ: pj});
+                
+                let pj = 0;
+                let streakValue = 0;
+                let count = 0;
+
+                for (let p of todasAsPartidas) {
+                    const noBranco = p.branco.includes(jId);
+                    const noPreto = p.preto.includes(jId);
+                    if (noBranco || noPreto) {
+                        pj++;
+                        if (count < 5) {
+                            const venceu = (noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto');
+                            if (venceu && p.modo !== 'amistoso') streakValue += Math.pow(2, 5 - count);
+                            count++;
+                        }
+                    }
+                }
+                cacheJogadores.push({id: jId, ...j, totalJ: pj, streakValue, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0});
             });
 
-            // 3. Ordenação idêntica ao Index (Saldo DESC, Desempate por Jogos DESC)
             const jogadoresOrdenados = [...cacheJogadores].sort((a, b) => {
-                let diff = (b.saldo || 0) - (a.saldo || 0);
-                if (diff === 0) return (b.totalJ || 0) - (a.totalJ || 0);
-                return diff;
+                let res = (b.saldo - a.saldo) || (b.totalJ - a.totalJ) || (b.streakValue - a.streakValue);
+                return res || a.nome.localeCompare(b.nome);
             });
 
             let pos = 1;
             jogadoresOrdenados.forEach(j => {
-                // Lista de Gestão
                 lista.innerHTML += `
                     <div class="p-3 rounded-xl flex items-center justify-between border border-white/5 bg-white/5">
                         <div class="flex items-center gap-3"><span class="text-[10px] font-black text-emerald-500">${j.apelido || 'GT'}</span><span class="text-xs font-bold uppercase">${j.nome}</span></div>
@@ -168,7 +177,6 @@
                         </div>
                     </div>`;
 
-                // Tabela de Ranking Lateral (Apenas Visíveis)
                 if(j.visivel !== false) {
                     ranking.innerHTML += `
                         <tr class="text-[11px] border-b border-white/5">
@@ -181,7 +189,6 @@
                 }
             });
 
-            // 4. Lista de Histórico
             const hist = document.getElementById('lista-historico-partidas');
             hist.innerHTML = '';
             todasAsPartidas.forEach(p => {
@@ -226,8 +233,7 @@
             const p = todasAsPartidas.find(x => x.id === id);
             const batch = writeBatch(db);
             if (p.modo !== 'amistoso') {
-                const win = p.vencedor === 'branco' ? p.branco : p.preto;
-                const lose = p.vencedor === 'branco' ? p.preto : p.branco;
+                const win = p.vencedor === 'branco' ? p.branco : p.preto, lose = p.vencedor === 'branco' ? p.preto : p.branco;
                 win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
                 if(p.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
             }
@@ -237,15 +243,13 @@
         }
 
         window.finalizarPartida = async () => {
-            const data = document.getElementById('data-jogo').value;
-            const editId = document.getElementById('edit-partida-id').value;
+            const data = document.getElementById('data-jogo').value, editId = document.getElementById('edit-partida-id').value;
             if(!timeB.length || !timeP.length || !data) return alert("Preencha tudo!");
             let batch = writeBatch(db);
             if(editId) {
                 const pOld = todasAsPartidas.find(x => x.id === editId);
                 if (pOld.modo !== 'amistoso') {
-                    const win = pOld.vencedor === 'branco' ? pOld.branco : pOld.preto;
-                    const lose = pOld.vencedor === 'branco' ? pOld.preto : pOld.branco;
+                    const win = pOld.vencedor === 'branco' ? pOld.branco : pOld.preto, lose = pOld.vencedor === 'branco' ? pOld.preto : pOld.branco;
                     win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
                     if(pOld.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
                 }
