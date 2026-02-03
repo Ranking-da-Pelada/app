@@ -12,14 +12,13 @@
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
         
-        /* Ajuste do formulário para o botão OK não fugir */
         .grid-form-jogadores {
             display: grid;
-            grid-template-columns: 1fr 50px 50px; /* Reduzi um pouco para dar mais folga */
+            grid-template-columns: 1fr 50px 50px;
             gap: 6px;
             width: 100%;
         }
-        .grid-form-jogadores input { min-width: 0; } /* Impede que o input force largura */
+        .grid-form-jogadores input { min-width: 0; }
 
         .player-tag { cursor: pointer; transition: all 0.2s; }
         .player-tag:hover { background: #ef4444; color: white; }
@@ -40,7 +39,7 @@
             
             <div class="order-1 lg:order-2 lg:col-span-7 space-y-6">
                 
-                <section class="glass p-5 rounded-2xl border-emerald-500/20">
+                <section id="secao-partida" class="glass p-5 rounded-2xl border-emerald-500/20">
                     <h2 class="text-sm font-black uppercase text-emerald-500 flex items-center gap-2 italic mb-6">
                         <i data-lucide="swords" class="w-4 h-4"></i> <span id="label-partida">Lançar Partida</span>
                     </h2>
@@ -78,7 +77,7 @@
                         </div>
 
                         <input type="date" id="data-jogo" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-sm outline-none">
-                        <button onclick="finalizarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-black text-xs transition uppercase tracking-widest">Gravar Resultado</button>
+                        <button id="btn-gravar-partida" onclick="finalizarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-black text-xs transition uppercase tracking-widest">Gravar Resultado</button>
                     </div>
                 </section>
 
@@ -121,7 +120,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, increment, arrayUnion, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, increment, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAN-K0QORHude3h_WQ8TrLBiA2VyuV04rY",
@@ -184,7 +183,10 @@
                     <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-[10px] space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="font-black text-emerald-500 uppercase italic">Vencedor: ${p.vencedor} ${p.penaltis ? '(Pês)' : ''}</span>
-                            <button onclick="excluirPartida('${d.id}')" class="text-red-500 font-bold uppercase text-[8px] border border-red-500/20 px-2 py-1 rounded-lg">Excluir</button>
+                            <div class="flex gap-2">
+                                <button onclick="editarPartida('${d.id}')" class="text-cyan-500 p-1 rounded hover:bg-cyan-500/10"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                                <button onclick="excluirPartida('${d.id}')" class="text-red-500 p-1 rounded hover:bg-red-500/10"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 gap-1 border-t border-white/5 pt-2">
                             <div class="text-[9px]"><strong class="text-white/40 uppercase">Branco:</strong> <span class="text-slate-300">${nomesB}</span></div>
@@ -196,9 +198,25 @@
             lucide.createIcons();
         }
 
-        window.excluirPartida = async (id) => {
-            if (!confirm("Excluir partida? Pontos serão estornados!")) return;
+        window.editarPartida = async (id) => {
             const pSnap = await getDoc(doc(db, "partidas", id));
+            const p = pSnap.data();
+            document.getElementById('edit-partida-id').value = id;
+            document.getElementById('label-partida').textContent = "Editando Partida";
+            document.getElementById('btn-gravar-partida').textContent = "Salvar Alterações";
+            document.getElementById('btn-gravar-partida').classList.replace('bg-emerald-600', 'bg-cyan-600');
+            document.getElementById('modo-ponto').value = p.modo;
+            document.getElementById('vencedor').value = p.vencedor;
+            document.getElementById('penaltis').checked = p.penaltis;
+            document.getElementById('data-jogo').value = p.data;
+            timeB = [...p.branco]; timeP = [...p.preto];
+            renderizarTags();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function estornarPontos(idPartida) {
+            const pSnap = await getDoc(doc(db, "partidas", idPartida));
+            if (!pSnap.exists()) return;
             const p = pSnap.data();
             const batch = writeBatch(db);
             if (p.modo !== 'amistoso') {
@@ -207,35 +225,59 @@
                 win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
                 if(p.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
             }
-            batch.delete(doc(db, "partidas", id));
-            await batch.commit();
-            location.reload();
+            return batch;
         }
 
-        window.resetarTudo = async () => {
-            if(!confirm("CUIDADO: Isto vai apagar todos os jogos e zerar os placares! Confirmas?")) return;
-            const batch = writeBatch(db);
-            const jSnap = await getDocs(collection(db, "jogadores"));
-            jSnap.forEach(d => batch.update(doc(db, "jogadores", d.id), { v: 0, d: 0, saldo: 0, historico: [] }));
-            const pSnap = await getDocs(collection(db, "partidas"));
-            pSnap.forEach(d => batch.delete(doc(db, "partidas", d.id)));
+        window.excluirPartida = async (id) => {
+            if (!confirm("Excluir partida? Pontos serão estornados!")) return;
+            const batch = await estornarPontos(id);
+            batch.delete(doc(db, "partidas", id));
             await batch.commit();
             location.reload();
         }
 
         window.finalizarPartida = async () => {
             const data = document.getElementById('data-jogo').value;
-            if(!timeB.length || !timeP.length || !data) return alert("Preencha times e data!");
-            const vence = document.getElementById('vencedor').value, modo = document.getElementById('modo-ponto').value;
-            const penaltis = document.getElementById('penaltis').checked;
-            const batch = writeBatch(db);
-            const pRef = doc(collection(db, "partidas"));
-            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, penaltis, timestamp: Date.now() });
+            const editId = document.getElementById('edit-partida-id').value;
+            if(!timeB.length || !timeP.length || !data) return alert("Preencha tudo!");
+            
+            let batch = writeBatch(db);
+            if(editId) {
+                // Se for edição, estorna primeiro
+                const batchEstorno = await estornarPontos(editId);
+                // Como não podemos mesclar batches facilmente, usamos a mesma instância
+                const pSnap = await getDoc(doc(db, "partidas", editId));
+                const pOld = pSnap.data();
+                if (pOld.modo !== 'amistoso') {
+                    const win = pOld.vencedor === 'branco' ? pOld.branco : pOld.preto;
+                    const lose = pOld.vencedor === 'branco' ? pOld.preto : pOld.branco;
+                    win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
+                    if(pOld.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
+                }
+            }
+
+            const vence = document.getElementById('vencedor').value, modo = document.getElementById('modo-ponto').value, penaltis = document.getElementById('penaltis').checked;
+            const pRef = editId ? doc(db, "partidas", editId) : doc(collection(db, "partidas"));
+            
+            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, penaltis, timestamp: Date.now() }, { merge: true });
+            
             if(modo !== 'amistoso') {
                 const win = vence === 'branco' ? timeB : timeP, lose = vence === 'branco' ? timeP : timeB;
                 win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1) }));
                 if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1) }));
             }
+            
+            await batch.commit();
+            location.reload();
+        }
+
+        window.resetarTudo = async () => {
+            if(!confirm("Zerar TODO o ranking?")) return;
+            const batch = writeBatch(db);
+            const jSnap = await getDocs(collection(db, "jogadores"));
+            jSnap.forEach(d => batch.update(doc(db, "jogadores", d.id), { v: 0, d: 0, saldo: 0 }));
+            const pSnap = await getDocs(collection(db, "partidas"));
+            pSnap.forEach(d => batch.delete(doc(db, "partidas", d.id)));
             await batch.commit();
             location.reload();
         }
@@ -251,11 +293,11 @@
             bBox.innerHTML = ''; pBox.innerHTML = '';
             timeB.forEach(id => {
                 const j = cacheJogadores.find(x => x.id === id);
-                bBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-branco')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j.nome}</div>`;
+                bBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-branco')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j?.nome || '...'}</div>`;
             });
             timeP.forEach(id => {
                 const j = cacheJogadores.find(x => x.id === id);
-                pBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-preto')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j.nome}</div>`;
+                pBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-preto')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j?.nome || '...'}</div>`;
             });
         }
 
@@ -278,7 +320,7 @@
             const id = document.getElementById('edit-id').value, n = document.getElementById('add-nome').value, gt = document.getElementById('add-apelido').value.toUpperCase();
             if(!n || !gt) return;
             if(id) await updateDoc(doc(db, "jogadores", id), { nome: n, apelido: gt });
-            else await addDoc(collection(db, "jogadores"), { nome: n, apelido: gt, v: 0, d: 0, saldo: 0, historico: [], visivel: true });
+            else await addDoc(collection(db, "jogadores"), { nome: n, apelido: gt, v: 0, d: 0, saldo: 0, visivel: true });
             location.reload();
         }
 
