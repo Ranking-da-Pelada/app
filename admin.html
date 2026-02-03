@@ -11,7 +11,8 @@
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
-        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 50px 50px; gap: 6px; width: 100%; }
+        /* Grid ajustada: Nome ocupa o espaço disponível, GT e OK ficam fixos e pequenos */
+        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 45px 45px; gap: 6px; width: 100%; }
         .player-tag { cursor: pointer; transition: all 0.2s; }
         .player-tag:hover { background: #ef4444; color: white; }
     </style>
@@ -79,8 +80,8 @@
                     <div class="grid-form-jogadores mb-6">
                         <input type="hidden" id="edit-id">
                         <input type="text" id="add-nome" placeholder="Nome" class="bg-slate-800/50 p-3 rounded-xl border border-white/10 outline-none text-sm">
-                        <input type="text" id="add-apelido" placeholder="GT" class="bg-slate-800/50 p-3 rounded-xl border border-white/10 text-center uppercase font-bold text-sm">
-                        <button id="btn-salvar-jogador" onclick="salvarNovoJogador()" class="bg-emerald-600 rounded-xl font-bold text-xs uppercase">OK</button>
+                        <input type="text" id="add-apelido" placeholder="GT" class="bg-slate-800/50 p-2 rounded-xl border border-white/10 text-center uppercase font-bold text-[10px]">
+                        <button id="btn-salvar-jogador" onclick="salvarNovoJogador()" class="bg-emerald-600 rounded-xl font-bold text-[10px] uppercase">OK</button>
                     </div>
                     <div id="lista-jogadores" class="space-y-2"></div>
                 </section>
@@ -162,7 +163,6 @@
                 cacheJogadores.push({id: jId, ...j, totalJ: pj, streakValue, v, d: j.d || 0, saldo: j.saldo || 0, aprov});
             });
 
-            // NOVA ORDENAÇÃO: % -> Saldo -> + Partidas -> + Recentes
             const jogadoresOrdenados = [...cacheJogadores].sort((a, b) => {
                 let res = (b.aprov - a.aprov) || (b.saldo - a.saldo) || (b.totalJ - a.totalJ) || (b.streakValue - a.streakValue);
                 return res || a.nome.localeCompare(b.nome);
