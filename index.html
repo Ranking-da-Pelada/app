@@ -20,15 +20,14 @@
         th.sortable { cursor: pointer; user-select: none; transition: 0.2s; white-space: nowrap; }
         .sort-icon { font-size: 0.5rem; margin-left: 1px; vertical-align: middle; color: #10b981; }
 
-        /* Localize este bloco por volta da linha 20 */
-@keyframes flame {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.08); opacity: 1; }
-}
-.hot-streak { 
-    animation: flame 2s infinite ease-in-out; 
-    display: inline-block; 
-}
+        @keyframes flame {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
+        .hot-streak { 
+            animation: flame 2s infinite ease-in-out; 
+            display: inline-block; 
+        }
         
         @media (max-width: 640px) {
             .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
@@ -195,7 +194,6 @@
                         <i data-lucide="medal" class="w-1.5 h-1.5"></i> CAMPEÃO
                     </span>` : '';
 
-                // ALTERADO: Agora exige 3 vitórias consecutivas ('v') para o foguinho
                 const ultimosTres = j.rawHist.slice(0, 3);
                 const fireEmoji = (ultimosTres.length === 3 && ultimosTres.every(r => r === 'v')) ? `<span class="hot-streak mr-1">🔥</span>` : '';
 
@@ -257,7 +255,7 @@
                             <div class="border-l border-white/5 pl-2.5"><p class="text-[7px] text-slate-500 uppercase mb-0.5">Preto</p><p class="text-slate-300 font-medium leading-tight">${nomesP.join(', ')}</p></div>
                         </div>
                         <div class="mt-2 pt-1.5 border-t border-white/5 text-[8px] font-black uppercase italic ${p.vencedor === 'branco' ? 'text-emerald-400' : 'text-cyan-400'}">
-                            Vencedor: ${p.vencedor} ${p.penaltis ? '(P)' : ''}
+                            Vencedor: ${p.vencedor} ${p.penaltis ? '(penaltis)' : ''}
                         </div>
                     </div>
                 `;
@@ -275,4 +273,3 @@
     </script>
 </body>
 </html>
-
