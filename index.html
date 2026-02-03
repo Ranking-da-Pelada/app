@@ -91,40 +91,76 @@
         const db = getFirestore(app);
 
         let dadosJogadores = [];
+        let todasAsPartidas = [];
         let ordenacaoAtual = { campo: 'saldo', crescente: false };
 
         async function carregarDados() {
             try {
-                const pSnap = await getDocs(collection(db, "partidas"));
-                document.getElementById('total-partidas-liga').textContent = pSnap.size;
+                // 1. Carregar todas as partidas para calcular a forma
+                const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
+                todasAsPartidas = [];
+                pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
+                
+                document.getElementById('total-partidas-liga').textContent = todasAsPartidas.length;
 
-                const qUltima = query(collection(db, "partidas"), orderBy("data", "desc"), limit(1));
-                const lastSnap = await getDocs(qUltima);
-                if(!lastSnap.empty) {
-                    const dataRaw = lastSnap.docs[0].data().data;
+                if(todasAsPartidas.length > 0) {
+                    const ultima = todasAsPartidas[0];
                     document.getElementById('ultima-partida').innerHTML = `
                         <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
-                        Última: ${dataRaw.split('-').reverse().join('/')}
+                        Última: ${ultima.data.split('-').reverse().join('/')}
                     `;
                 }
 
+                // 2. Carregar jogadores
                 const jSnap = await getDocs(collection(db, "jogadores"));
                 dadosJogadores = [];
+                
                 jSnap.forEach(d => {
                     const j = d.data();
-                    if(j.visivel) {
-                        const hist = j.historico || [];
+                    const jId = d.id;
+                    if(j.visivel !== false) {
+                        // CALCULAR FORMA DINAMICAMENTE
+                        let histForma = [];
+                        let pj = 0;
+                        
+                        // Percorrer partidas (que já estão ordenadas por data desc)
+                        for (let p of todasAsPartidas) {
+                            const noBranco = p.branco.includes(jId);
+                            const noPreto = p.preto.includes(jId);
+                            
+                            if (noBranco || noPreto) {
+                                pj++;
+                                if (histForma.length < 5) {
+                                    if (p.modo === 'amistoso') {
+                                        histForma.push('a'); // Amistoso (cinza)
+                                    } else {
+                                        const venceu = (noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto');
+                                        histForma.push(venceu ? 'v' : 'd');
+                                    }
+                                }
+                            }
+                        }
+                        
                         const v = j.v || 0;
                         const dNum = j.d || 0;
-                        const totalJ = Math.max(hist.length, v + dNum);
-                        const aprov = totalJ > 0 ? Math.round((v / totalJ) * 100) : 0;
-                        const vRecentes = hist.slice(-5).filter(r => r === 'v').length;
-                        dadosJogadores.push({ ...j, id: d.id, v, d: dNum, saldo: j.saldo || 0, totalJ, aprov, hist, vRecentes });
+                        const aprov = pj > 0 ? Math.round((v / pj) * 100) : 0;
+                        
+                        dadosJogadores.push({ 
+                            ...j, 
+                            id: jId, 
+                            v, 
+                            d: dNum, 
+                            saldo: j.saldo || 0, 
+                            totalJ: pj, 
+                            aprov, 
+                            hist: histForma.reverse(), // Inverter para renderizar na ordem correta
+                            vRecentes: histForma.filter(r => r === 'v').length 
+                        });
                     }
                 });
 
                 renderizarRanking();
-                renderizarHistorico(pSnap);
+                renderizarHistorico(todasAsPartidas);
             } catch (err) { console.error(err); }
         }
 
@@ -145,10 +181,12 @@
                 const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
                 
                 let bolinhas = "";
+                // Renderiza 5 espaços de bolinha
                 for(let k = 0; k < 5; k++) {
-                    const res = j.hist[j.hist.length - 5 + k];
-                    if (res === 'v') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500"></span>`;
-                    else if (res === 'd') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-red-600"></span>`;
+                    const res = j.hist[k];
+                    if (res === 'v') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>`;
+                    else if (res === 'd') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-red-600 shadow-[0_0_5px_rgba(220,38,38,0.5)]"></span>`;
+                    else if (res === 'a') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-slate-500"></span>`;
                     else bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/5"></span>`;
                 }
 
@@ -181,12 +219,9 @@
             lucide.createIcons();
         }
 
-        function renderizarHistorico(snap) {
+        function renderizarHistorico(partidas) {
             const container = document.getElementById('historico-lista');
             container.innerHTML = '';
-            let partidas = [];
-            snap.forEach(d => partidas.push({id: d.id, ...d.data()}));
-            partidas.sort((a, b) => b.data.localeCompare(a.data));
 
             partidas.forEach(p => {
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
