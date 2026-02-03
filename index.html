@@ -10,13 +10,21 @@
         body { background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .ranking-card:hover { background: rgba(255, 255, 255, 0.06); transition: 0.3s; }
-        .pos-1 { color: #fbbf24; } .pos-2 { color: #94a3b8; } .pos-3 { color: #92400e; }
+        
+        /* Estilos de Posição */
+        .pos-badge { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: 0 auto; border-radius: 50%; font-size: 11px; font-weight: 900; }
+        .pos-1 { border: 1.5px solid #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .pos-2 { border: 1.5px solid #94a3b8; color: #f1f5f9; background: rgba(148, 163, 184, 0.1); }
+        .pos-3 { border: 1.5px solid #92400e; color: #f97316; background: rgba(146, 64, 14, 0.1); }
+        .pos-other { color: #64748b; font-size: 11px; }
+
         th.sortable { cursor: pointer; user-select: none; transition: 0.2s; white-space: nowrap; }
         .sort-icon { font-size: 0.5rem; margin-left: 1px; vertical-align: middle; color: #10b981; }
         
         @media (max-width: 640px) {
             .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
             .player-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .pos-badge { width: 18px; height: 18px; font-size: 9px; }
         }
     </style>
 </head>
@@ -51,7 +59,7 @@
                 <table class="w-full text-left border-collapse table-compact">
                     <thead>
                         <tr class="text-slate-500 text-[8px] uppercase tracking-tighter border-b border-white/5 bg-white/5">
-                            <th class="py-3 px-2 w-6 text-center">#</th>
+                            <th class="py-3 px-2 w-8 text-center">#</th>
                             <th class="py-3 pl-2">Jogador</th>
                             <th class="text-center sortable w-8" onclick="ordenar('saldo')">S<span id="sort-saldo" class="sort-icon"></span></th>
                             <th class="text-center sortable w-6" onclick="ordenar('v')">V<span id="sort-v" class="sort-icon"></span></th>
@@ -123,38 +131,23 @@
                         for (let p of todasAsPartidas) {
                             const noBranco = p.branco.includes(jId);
                             const noPreto = p.preto.includes(jId);
-                            
                             if (noBranco || noPreto) {
                                 pj++;
                                 if (histForma.length < 5) {
-                                    if (p.modo === 'amistoso') {
-                                        histForma.push('a');
-                                    } else {
+                                    if (p.modo === 'amistoso') { histForma.push('a'); } 
+                                    else {
                                         const venceu = (noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto');
                                         histForma.push(venceu ? 'v' : 'd');
                                     }
                                 }
                             }
                         }
-                        
                         const v = j.v || 0;
                         const dNum = j.d || 0;
                         const aprov = pj > 0 ? Math.round((v / pj) * 100) : 0;
-                        
-                        dadosJogadores.push({ 
-                            ...j, 
-                            id: jId, 
-                            v, 
-                            d: dNum, 
-                            saldo: j.saldo || 0, 
-                            totalJ: pj, 
-                            aprov, 
-                            hist: histForma.reverse(),
-                            vRecentes: histForma.filter(r => r === 'v').length 
-                        });
+                        dadosJogadores.push({ ...j, id: jId, v, d: dNum, saldo: j.saldo || 0, totalJ: pj, aprov, hist: histForma.reverse() });
                     }
                 });
-
                 renderizarRanking();
                 renderizarHistorico(todasAsPartidas);
             } catch (err) { console.error(err); }
@@ -162,12 +155,9 @@
 
         function renderizarRanking() {
             const tbody = document.getElementById('tabela-body');
-            
             dadosJogadores.sort((a, b) => {
                 let primary = a[ordenacaoAtual.campo] - b[ordenacaoAtual.campo];
-                if (ordenacaoAtual.campo === 'saldo' || ordenacaoAtual.campo === 'v' || ordenacaoAtual.campo === 'aprov') {
-                    primary = primary || a.totalJ - b.totalJ;
-                }
+                if (['saldo', 'v', 'aprov'].includes(ordenacaoAtual.campo)) primary = primary || a.totalJ - b.totalJ;
                 return ordenacaoAtual.crescente ? primary : -primary;
             });
 
@@ -175,6 +165,7 @@
             dadosJogadores.forEach((j, i) => {
                 const pos = i + 1;
                 const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
+                const posHtml = pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`;
                 
                 let bolinhas = "";
                 for(let k = 0; k < 5; k++) {
@@ -187,7 +178,7 @@
 
                 tbody.innerHTML += `
                     <tr class="ranking-card border-b border-white/[0.02]">
-                        <td class="py-2.5 text-center font-black ${pos <= 3 ? 'pos-'+pos : 'text-slate-700'}">${pos}</td>
+                        <td class="py-2.5 text-center font-black">${posHtml}</td>
                         <td class="py-2.5 pl-2">
                             <div class="flex items-center gap-1.5">
                                 <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold text-[7px] text-slate-500 uppercase border border-white/5">
@@ -207,7 +198,6 @@
                     </tr>
                 `;
             });
-
             document.querySelectorAll('.sort-icon').forEach(el => el.innerHTML = '');
             const span = document.getElementById(`sort-${ordenacaoAtual.campo}`);
             if(span) span.innerHTML = `<i data-lucide="${ordenacaoAtual.crescente ? 'chevron-up' : 'chevron-down'}" class="w-2 h-2 inline"></i>`;
@@ -217,11 +207,9 @@
         function renderizarHistorico(partidas) {
             const container = document.getElementById('historico-lista');
             container.innerHTML = '';
-
             partidas.forEach(p => {
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
-
                 container.innerHTML += `
                     <div class="glass p-3 rounded-lg border border-white/5">
                         <div class="flex justify-between items-center mb-2 text-[8px] font-black uppercase text-slate-500 border-b border-white/5 pb-1.5">
