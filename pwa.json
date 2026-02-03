@@ -1,0 +1,28 @@
+{
+  "name": "Ranking da Pelada 2026",
+  "short_name": "Pelada",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/8N4X0rL.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.imgur.com/8N4X0rL.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.imgur.com/8N4X0rL.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
