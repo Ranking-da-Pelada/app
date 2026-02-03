@@ -170,7 +170,8 @@
                 } else if (c === 'totalJ') {
                     res = (a.totalJ - b.totalJ) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
                 } else if (c === 'aprov') {
-                    res = (a.aprov - b.aprov) || (a.streakValue - b.streakValue) || (a.saldo - b.saldo);
+                    // Hierarquia: % -> Saldo -> + Partidas -> + Vitorias Recentes
+                    res = (a.aprov - b.aprov) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ) || (a.streakValue - b.streakValue);
                 } else if (c === 'recentes') {
                     res = (a.streakValue - b.streakValue) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ);
                 }
