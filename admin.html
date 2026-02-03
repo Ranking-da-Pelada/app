@@ -11,12 +11,8 @@
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
-        
-        /* Grid ultra compacta para celulares pequenos */
-        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 38px 38px; gap: 4px; width: 100%; }
-        
-        /* Classe para alinhar perfeitamente Título e Número */
-        .col-stats { width: 40px; text-align: center; flex-shrink: 0; }
+        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 40px 40px; gap: 5px; width: 100%; }
+        .col-stats { width: 35px; text-align: center; flex-shrink: 0; }
         .player-tag { cursor: pointer; transition: all 0.2s; }
         .player-tag:hover { background: #ef4444; color: white; }
     </style>
@@ -102,7 +98,7 @@
                         </div>
                     </div>
                     <div class="overflow-y-auto">
-                        <table class="w-full border-collapse">
+                        <table class="w-full">
                             <tbody id="ranking-body" class="divide-y divide-white/5"></tbody>
                         </table>
                     </div>
@@ -113,7 +109,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, increment, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, increment, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAN-K0QORHude3h_WQ8TrLBiA2VyuV04rY",
@@ -141,20 +137,16 @@
 
             const snapJ = await getDocs(collection(db, "jogadores"));
             const lista = document.getElementById('lista-jogadores'), ranking = document.getElementById('ranking-body');
-            lista.innerHTML = ''; ranking.innerHTML = ''; 
-            cacheJogadores = [];
+            lista.innerHTML = ''; ranking.innerHTML = ''; cacheJogadores = [];
 
             snapJ.forEach(d => {
                 const j = d.data();
                 const jId = d.id;
                 let pj = 0;
-                todasAsPartidas.forEach(p => {
-                    if (p.branco.includes(jId) || p.preto.includes(jId)) pj++;
-                });
+                todasAsPartidas.forEach(p => { if (p.branco.includes(jId) || p.preto.includes(jId)) pj++; });
                 cacheJogadores.push({id: jId, ...j, totalJ: pj, saldo: j.saldo || 0, v: j.v || 0});
             });
 
-            // Ordenação: Saldo > Vitórias > Nome
             const jogadoresOrdenados = [...cacheJogadores].sort((a, b) => (b.saldo - a.saldo) || (b.v - a.v) || a.nome.localeCompare(b.nome));
 
             let pos = 1;
@@ -186,83 +178,57 @@
             todasAsPartidas.forEach(p => {
                 const nomesB = p.branco.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
                 const nomesP = p.preto.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
-                hist.innerHTML += `
-                    <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-[10px] space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-black text-emerald-500 uppercase italic">Vencedor: ${p.vencedor} ${p.penaltis ? '(Pês)' : ''}</span>
-                            <div class="flex gap-2">
-                                <button onclick="editarPartida('${p.id}')" class="text-cyan-500 p-1 rounded hover:bg-cyan-500/10"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
-                                <button onclick="excluirPartida('${p.id}')" class="text-red-500 p-1 rounded hover:bg-red-500/10"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 gap-1 border-t border-white/5 pt-2">
-                            <div class="text-[9px]"><strong class="text-white/40 uppercase">Branco:</strong> <span class="text-slate-300 text-xs">${nomesB}</span></div>
-                            <div class="text-[9px]"><strong class="text-white/40 uppercase">Preto:</strong> <span class="text-slate-300 text-xs">${nomesP}</span></div>
-                        </div>
-                        <div class="text-[8px] text-slate-500 uppercase font-bold tracking-widest">${p.data.split('-').reverse().join('/')} • MODO: ${p.modo}</div>
-                    </div>`;
+                hist.innerHTML += `<div class="bg-white/5 p-4 rounded-xl border border-white/5 text-[10px] space-y-2">
+                    <div class="flex justify-between items-center"><span class="font-black text-emerald-500 uppercase italic">Vencedor: ${p.vencedor}</span>
+                    <div class="flex gap-2"><button onclick="excluirPartida('${p.id}')" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button></div></div>
+                    <div class="grid grid-cols-1 gap-1 border-t border-white/5 pt-2">
+                    <div class="text-[9px]"><strong class="text-white/40 uppercase">B:</strong> <span class="text-slate-300">${nomesB}</span></div>
+                    <div class="text-[9px]"><strong class="text-white/40 uppercase">P:</strong> <span class="text-slate-300">${nomesP}</span></div></div></div>`;
             });
             lucide.createIcons();
         }
 
         window.finalizarPartida = async () => {
-            const data = document.getElementById('data-jogo').value, editId = document.getElementById('edit-partida-id').value;
+            const data = document.getElementById('data-jogo').value;
             if(!timeB.length || !timeP.length || !data) return alert("Preencha tudo!");
             let batch = writeBatch(db);
-            if(editId) {
-                const pOld = todasAsPartidas.find(x => x.id === editId);
-                if (pOld.modo !== 'amistoso') {
-                    const win = pOld.vencedor === 'branco' ? pOld.branco : pOld.preto, lose = pOld.vencedor === 'branco' ? pOld.preto : pOld.branco;
-                    win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
-                    if(pOld.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
-                }
-            }
             const vence = document.getElementById('vencedor').value, modo = document.getElementById('modo-ponto').value, penaltis = document.getElementById('penaltis').checked;
-            const pRef = editId ? doc(db, "partidas", editId) : doc(collection(db, "partidas"));
-            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, penaltis, timestamp: Date.now() }, { merge: true });
+            const pRef = doc(collection(db, "partidas"));
+            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, penaltis, timestamp: Date.now() });
             if(modo !== 'amistoso') {
                 const win = vence === 'branco' ? timeB : timeP, lose = vence === 'branco' ? timeP : timeB;
                 win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1) }));
                 if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1) }));
             }
-            await batch.commit();
-            location.reload();
+            await batch.commit(); location.reload();
         }
 
-        window.resetarTudo = async () => {
-            if(!confirm("Zerar TODO o ranking?")) return;
-            const batch = writeBatch(db);
-            cacheJogadores.forEach(j => batch.update(doc(db, "jogadores", j.id), { v: 0, d: 0, saldo: 0 }));
-            todasAsPartidas.forEach(p => batch.delete(doc(db, "partidas", p.id)));
-            await batch.commit();
-            location.reload();
-        }
-
-        window.removerDaLista = (id, tagsId) => {
-            if(tagsId === 'tags-branco') timeB = timeB.filter(x => x !== id);
-            else timeP = timeP.filter(x => x !== id);
-            renderizarTags();
-        };
-
+        window.resetarTudo = async () => { if(confirm("Zerar ranking?")) { const batch = writeBatch(db); cacheJogadores.forEach(j => batch.update(doc(db, "jogadores", j.id), { v: 0, d: 0, saldo: 0 })); todasAsPartidas.forEach(p => batch.delete(doc(db, "partidas", p.id))); await batch.commit(); location.reload(); } }
+        window.removerDaLista = (id, tagsId) => { if(tagsId === 'tags-branco') timeB = timeB.filter(x => x !== id); else timeP = timeP.filter(x => x !== id); renderizarTags(); };
         function renderizarTags() {
-            const bBox = document.getElementById('tags-branco'), pBox = document.getElementById('tags-preto');
-            bBox.innerHTML = ''; pBox.innerHTML = '';
-            timeB.forEach(id => {
-                const j = cacheJogadores.find(x => x.id === id);
-                bBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-branco')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j?.nome || '...'}</div>`;
-            });
-            timeP.forEach(id => {
-                const j = cacheJogadores.find(x => x.id === id);
-                pBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-preto')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5 hover:bg-red-500 transition-colors">${j?.nome || '...'}</div>`;
-            });
+            const bBox = document.getElementById('tags-branco'), pBox = document.getElementById('tags-preto'); bBox.innerHTML = ''; pBox.innerHTML = '';
+            timeB.forEach(id => { const j = cacheJogadores.find(x => x.id === id); bBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-branco')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5">${j?.nome}</div>`; });
+            timeP.forEach(id => { const j = cacheJogadores.find(x => x.id === id); pBox.innerHTML += `<div onclick="removerDaLista('${id}', 'tags-preto')" class="player-tag bg-slate-800 px-2 py-1 rounded text-[10px] border border-white/5">${j?.nome}</div>`; });
         }
-
         window.buscarSugestoes = (input, sugId, tagsId) => {
-            const txt = input.value.toLowerCase(), box = document.getElementById(sugId); box.innerHTML = '';
-            if(!txt) { box.classList.add('hidden'); return; }
-            const f = cacheJogadores.filter(j => j.nome.toLowerCase().includes(txt) && !timeB.includes(j.id) && !timeP.includes(j.id));
-            f.forEach(j => {
+            const txt = input.value.toLowerCase(), box = document.getElementById(sugId); box.innerHTML = ''; if(!txt) { box.classList.add('hidden'); return; }
+            cacheJogadores.filter(j => j.nome.toLowerCase().includes(txt) && !timeB.includes(j.id) && !timeP.includes(j.id)).forEach(j => {
                 const d = document.createElement('div'); d.className = "p-3 sugestao-item cursor-pointer border-b border-white/5 text-xs font-bold";
-                d.textContent = j.nome; d.onclick = () => { 
-                    if(tagsId === 'tags-branco') timeB.push(j.id); else timeP.push(j.id);
-                    renderizarTags(); input.value = ''; box.classList.add('hidden');
+                d.textContent = j.nome; d.onclick = () => { if(tagsId === 'tags-branco') timeB.push(j.id); else timeP.push(j.id); renderizarTags(); input.value = ''; box.classList.add('hidden'); };
+                box.appendChild(d);
+            }); box.classList.remove('hidden');
+        }
+        window.salvarNovoJogador = async () => {
+            const id = document.getElementById('edit-id').value, n = document.getElementById('add-nome').value, gt = document.getElementById('add-apelido').value.toUpperCase();
+            if(!n || !gt) return;
+            if(id) await updateDoc(doc(db, "jogadores", id), { nome: n, apelido: gt });
+            else await addDoc(collection(db, "jogadores"), { nome: n, apelido: gt, v: 0, d: 0, saldo: 0, visivel: true });
+            location.reload();
+        }
+        window.toggleVis = async (id, s) => { await updateDoc(doc(db, "jogadores", id), { visivel: !s }); location.reload(); };
+        window.prepararEdicao = (id, n, a) => { document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; document.getElementById('add-apelido').value = a; };
+        window.excluirJogador = async (id) => { if(confirm("Eliminar jogador?")) { await deleteDoc(doc(db, "jogadores", id)); location.reload(); } };
+        init();
+    </script>
+</body>
+</html>
