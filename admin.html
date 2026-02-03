@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin | Pelada 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -10,16 +10,15 @@
         body { background: #070a13; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
         
-        /* Ajuste fino para o formulário de jogadores */
-        .form-gestao { display: flex; gap: 8px; width: 100%; align-items: stretch; }
-        .input-nome { flex: 1; min-width: 0; } /* min-width: 0 permite que o flex encolha o input */
-        .input-gt { width: 60px; flex-shrink: 0; }
-        .btn-ok { width: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        /* SOLUÇÃO DEFINITIVA PARA O BOTÃO OK NÃO SAIR DA TELA */
+        .grid-form-jogadores {
+            display: grid;
+            grid-template-columns: 1fr 55px 55px; /* Nome ganha tudo, GT 55px, OK 55px */
+            gap: 8px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="p-4 lg:p-6">
@@ -27,106 +26,76 @@
     <div class="max-w-[1600px] mx-auto">
         <header class="mb-6 flex justify-between items-center bg-slate-900/50 p-4 rounded-2xl border border-white/5">
             <div>
-                <h1 class="text-xl font-black text-emerald-500 italic uppercase leading-none">Painel Administrativo</h1>
+                <h1 class="text-xl font-black text-emerald-500 italic uppercase leading-none">Painel Admin</h1>
                 <p class="text-slate-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">Temporada 2026</p>
             </div>
+            <button onclick="resetarTudo()" class="text-[9px] bg-red-600/20 text-red-500 border border-red-500/30 px-3 py-2 rounded-xl font-bold uppercase hover:bg-red-600 hover:text-white transition">Zerar Ranking</button>
         </header>
 
         <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6">
             
             <div class="order-1 lg:order-2 lg:col-span-7 space-y-6">
+                
                 <section class="glass p-5 rounded-2xl border-emerald-500/20">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-sm font-black uppercase text-emerald-500 flex items-center gap-2 italic">
-                            <i data-lucide="swords" class="w-4 h-4"></i> <span id="label-partida">Lançar Partida</span>
-                        </h2>
-                        <button id="btn-cancelar-partida" onclick="limparFormPartida()" class="hidden text-[10px] bg-red-500/20 text-red-500 px-3 py-1 rounded-lg font-bold uppercase">Cancelar Edição</button>
-                    </div>
+                    <h2 class="text-sm font-black uppercase text-emerald-500 flex items-center gap-2 italic mb-6">
+                        <i data-lucide="swords" class="w-4 h-4"></i> <span id="label-partida">Lançar Partida</span>
+                    </h2>
                     <div class="space-y-4">
                         <input type="hidden" id="edit-partida-id">
                         <div class="relative">
                             <label class="font-bold text-[10px] text-slate-500 mb-1 block uppercase">Time Branco</label>
-                            <input type="text" autocomplete="off" onkeyup="buscarSugestoes(this, 'sug-branco', 'tags-branco')" placeholder="Adicionar jogador..." class="w-full bg-slate-800/50 p-2.5 rounded-xl border border-white/10 outline-none focus:border-emerald-500 text-sm">
+                            <input type="text" autocomplete="off" onkeyup="buscarSugestoes(this, 'sug-branco', 'tags-branco')" placeholder="Adicionar jogador..." class="w-full bg-slate-800/50 p-3 rounded-xl border border-white/10 outline-none focus:border-emerald-500 text-sm">
                             <div id="sug-branco" class="absolute z-50 w-full bg-slate-900 border border-white/20 rounded-xl hidden mt-1 shadow-2xl"></div>
                             <div id="tags-branco" class="flex flex-wrap gap-2 mt-2 min-h-[30px]"></div>
                         </div>
 
                         <div class="relative">
                             <label class="font-bold text-[10px] text-slate-500 mb-1 block uppercase">Time Preto</label>
-                            <input type="text" autocomplete="off" onkeyup="buscarSugestoes(this, 'sug-preto', 'tags-preto')" placeholder="Adicionar jogador..." class="w-full bg-slate-800/50 p-2.5 rounded-xl border border-white/10 outline-none focus:border-white text-sm">
+                            <input type="text" autocomplete="off" onkeyup="buscarSugestoes(this, 'sug-preto', 'tags-preto')" placeholder="Adicionar jogador..." class="w-full bg-slate-800/50 p-3 rounded-xl border border-white/10 outline-none focus:border-white text-sm">
                             <div id="sug-preto" class="absolute z-50 w-full bg-slate-900 border border-white/20 rounded-xl hidden mt-1 shadow-2xl"></div>
                             <div id="tags-preto" class="flex flex-wrap gap-2 mt-2 min-h-[30px]"></div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center gap-3 bg-slate-800/50 p-2 rounded-xl border border-white/10 h-[38px] px-3 cursor-pointer" onclick="document.getElementById('penaltis').click()">
-                                <input type="checkbox" id="penaltis" class="w-4 h-4 accent-emerald-500 cursor-pointer">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Pênaltis</span>
-                            </div>
-                            <select id="modo-ponto" class="w-full bg-slate-800 p-2.5 rounded-xl border border-white/10 text-xs font-bold text-emerald-400 outline-none h-[38px]">
-                                <option value="normal">NORMAL</option>
-                                <option value="chuva">APENAS VITÓRIA</option>
+                            <select id="modo-ponto" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-xs font-bold text-emerald-400 outline-none">
+                                <option value="normal">PONTOS NORMAIS</option>
+                                <option value="chuva">SÓ VITÓRIA</option>
                                 <option value="amistoso">AMISTOSO</option>
                             </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <select id="vencedor" class="w-full bg-slate-800 p-2.5 rounded-xl border border-white/10 text-xs font-bold outline-none h-[38px]">
-                                <option value="branco">BRANCO</option>
-                                <option value="preto">PRETO</option>
+                            <select id="vencedor" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-xs font-bold outline-none">
+                                <option value="branco">VITÓRIA BRANCO</option>
+                                <option value="preto">VITÓRIA PRETO</option>
                             </select>
-                            <input type="date" id="data-jogo" class="w-full bg-slate-800 p-2.5 rounded-xl border border-white/10 text-[10px] outline-none h-[38px]">
                         </div>
-
-                        <button onclick="finalizarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl font-black text-xs transition shadow-lg shadow-emerald-600/20 uppercase tracking-widest mt-2">Gravar Partida</button>
+                        <input type="date" id="data-jogo" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-sm outline-none">
+                        <button onclick="finalizarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-black text-xs transition uppercase tracking-widest">Gravar Resultado</button>
                     </div>
                 </section>
 
-                <section class="glass rounded-2xl overflow-hidden flex flex-col h-[400px]">
-                    <div class="p-4 border-b border-white/5 bg-white/5 flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
-                        <h2 class="text-xs font-black uppercase tracking-widest">Histórico de Partidas</h2>
-                    </div>
-                    <div id="lista-historico-partidas" class="overflow-y-auto p-4 space-y-3 flex-1"></div>
+                <section class="glass rounded-2xl h-[350px] flex flex-col overflow-hidden">
+                    <div class="p-4 bg-white/5 border-b border-white/5 text-[10px] font-bold uppercase tracking-widest">Histórico</div>
+                    <div id="lista-historico-partidas" class="overflow-y-auto p-4 space-y-3"></div>
                 </section>
 
-                <section class="glass p-5 rounded-2xl border-white/5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-sm font-black uppercase text-cyan-500 flex items-center gap-2 italic">
-                            <i data-lucide="users" class="w-4 h-4"></i> Gestão de Jogadores
-                        </h2>
-                        <button onclick="resetarSaldos()" class="text-[8px] border border-red-500/30 text-red-500 px-2 py-1 rounded hover:bg-red-500/10 transition uppercase font-bold">Zerar Ranking</button>
-                    </div>
-                    
-                    <div class="form-gestao mb-6">
+                <section class="glass p-5 rounded-2xl">
+                    <h2 class="text-sm font-black uppercase text-cyan-500 mb-4 italic flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4"></i> Gestão de Jogadores
+                    </h2>
+                    <div class="grid-form-jogadores mb-6">
                         <input type="hidden" id="edit-id">
-                        <input type="text" id="add-nome" placeholder="Nome" class="input-nome bg-slate-800/50 p-3 rounded-xl border border-white/10 outline-none text-sm focus:border-cyan-500">
-                        <input type="text" id="add-apelido" placeholder="GT" class="input-gt bg-slate-800/50 p-3 rounded-xl border border-white/10 text-center uppercase font-bold text-sm outline-none">
-                        <button id="btn-salvar-jogador" onclick="salvarNovoJogador()" class="btn-ok bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs uppercase transition">OK</button>
-                        <button id="btn-cancelar-edit" onclick="limparFormJogador()" class="hidden bg-slate-700 px-3 rounded-xl">✕</button>
+                        <input type="text" id="add-nome" placeholder="Nome" class="bg-slate-800/50 p-3 rounded-xl border border-white/10 outline-none text-sm">
+                        <input type="text" id="add-apelido" placeholder="GT" class="bg-slate-800/50 p-3 rounded-xl border border-white/10 text-center uppercase font-bold text-sm">
+                        <button id="btn-salvar-jogador" onclick="salvarNovoJogador()" class="bg-emerald-600 rounded-xl font-bold text-xs">OK</button>
                     </div>
-                    
-                    <div id="lista-jogadores" class="space-y-2 max-h-[300px] overflow-y-auto pr-2"></div>
+                    <div id="lista-jogadores" class="space-y-2"></div>
                 </section>
             </div>
 
             <div class="order-2 lg:order-1 lg:col-span-5">
-                <section class="glass rounded-2xl overflow-hidden flex flex-col lg:h-[calc(100vh-140px)] min-h-[400px]">
-                    <div class="p-4 border-b border-white/5 bg-white/5 flex items-center gap-2">
-                        <i data-lucide="trophy" class="w-4 h-4 text-yellow-500"></i>
-                        <h2 class="text-xs font-black uppercase tracking-widest">Ranking Completo</h2>
-                    </div>
-                    <div class="overflow-y-auto flex-1">
-                        <table class="w-full text-[11px] text-left">
-                            <thead class="bg-slate-900/50 sticky top-0">
-                                <tr class="text-slate-500 uppercase font-black">
-                                    <th class="p-4">Pos</th>
-                                    <th class="p-4">Jogador</th>
-                                    <th class="p-4 text-center">Sld</th>
-                                    <th class="p-4 text-center">V</th>
-                                    <th class="p-4 text-center">D</th>
-                                </tr>
-                            </thead>
+                <section class="glass rounded-2xl overflow-hidden flex flex-col h-[600px] lg:h-auto">
+                    <div class="p-4 bg-white/5 border-b border-white/5 text-[10px] font-bold uppercase tracking-widest text-yellow-500">Ranking Atual</div>
+                    <div class="overflow-y-auto">
+                        <table class="w-full text-left">
                             <tbody id="ranking-body" class="divide-y divide-white/5"></tbody>
                         </table>
                     </div>
@@ -168,26 +137,18 @@
                 const j = d.data(); cacheJogadores.push({id: d.id, ...j});
                 lista.innerHTML += `
                     <div class="p-3 rounded-xl flex items-center justify-between border border-white/5 bg-white/5">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <span class="text-[10px] font-black text-emerald-500 w-6 shrink-0">${j.apelido || 'GT'}</span>
-                            <span class="text-[12px] font-bold uppercase truncate">${j.nome}</span>
-                        </div>
-                        <div class="flex gap-2 shrink-0">
-                            <button onclick="prepararEdicao('${d.id}', '${j.nome}', '${j.apelido}')" class="p-2.5 bg-slate-800 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="toggleVis('${d.id}', ${j.visivel})" class="p-2.5 bg-slate-800 rounded-lg ${j.visivel ? 'text-emerald-500' : 'text-slate-600'}"><i data-lucide="${j.visivel ? 'eye' : 'eye-off'}" class="w-4 h-4"></i></button>
-                            <button onclick="excluirJogador('${d.id}')" class="p-2.5 bg-red-900/20 rounded-lg text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <div class="flex items-center gap-3"><span class="text-[10px] font-black text-emerald-500">${j.apelido || 'GT'}</span><span class="text-xs font-bold uppercase">${j.nome}</span></div>
+                        <div class="flex gap-2">
+                            <button onclick="prepararEdicao('${d.id}', '${j.nome}', '${j.apelido}')" class="p-2 bg-slate-800 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-3 h-3"></i></button>
+                            <button onclick="excluirJogador('${d.id}')" class="p-2 bg-red-900/20 rounded-lg text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                         </div>
                     </div>`;
-
-                if(j.visivel) {
-                    const s = j.saldo || 0;
+                if(j.visivel !== false) {
                     ranking.innerHTML += `
-                        <tr class="border-b border-white/5">
-                            <td class="p-4"><span class="pos-badge">${pos++}º</span></td>
-                            <td class="p-4 font-bold uppercase truncate max-w-[120px]">${j.nome}</td>
-                            <td class="p-4 text-center font-mono ${s > 0 ? 'text-emerald-400' : (s < 0 ? 'text-red-400' : 'text-slate-400')} font-black">${s}</td>
-                            <td class="p-4 text-center text-slate-400">${j.v || 0}</td>
-                            <td class="p-4 text-center text-slate-600">${j.d || 0}</td>
+                        <tr class="text-[11px] border-b border-white/5">
+                            <td class="p-4 w-12"><span class="pos-badge">${pos++}º</span></td>
+                            <td class="p-4 font-bold uppercase">${j.nome}</td>
+                            <td class="p-4 text-center font-black ${j.saldo > 0 ? 'text-emerald-400' : (j.saldo < 0 ? 'text-red-400' : 'text-slate-500')}">${j.saldo || 0}</td>
                         </tr>`;
                 }
             });
@@ -198,110 +159,65 @@
             snapP.forEach(d => {
                 const p = d.data();
                 hist.innerHTML += `
-                    <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-[9px]">
-                        <div class="flex justify-between items-start mb-3">
-                            <div><span class="text-slate-500 font-black block">${p.data.split('-').reverse().join('/')}</span>
-                            <span class="font-black uppercase text-[10px] ${p.vencedor === 'branco' ? 'text-emerald-500' : 'text-blue-500'} italic">Vencedor: ${p.vencedor}</span></div>
-                            <div class="flex gap-2">
-                                <button onclick='prepararEdicaoPartida("${d.id}", ${JSON.stringify(p)})' class="p-1.5 bg-white/5 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-3 h-3"></i></button>
-                                <button onclick="excluirPartida('${d.id}')" class="p-1.5 bg-white/5 rounded-lg text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
-                            </div>
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/5 text-[10px]">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-black text-emerald-500 uppercase">Vencedor: ${p.vencedor}</span>
+                            <button onclick="excluirPartida('${d.id}')" class="text-red-500 font-bold uppercase text-[8px]">Excluir Partida</button>
                         </div>
-                        <div class="space-y-1 opacity-80 uppercase">
-                            <div><strong class="text-slate-500">BRANCO:</strong> ${p.branco.map(id => cacheJogadores.find(x => x.id === id)?.nome || "---").join(', ')}</div>
-                            <div><strong class="text-slate-500">PRETO:</strong> ${p.preto.map(id => cacheJogadores.find(x => x.id === id)?.nome || "---").join(', ')}</div>
-                        </div>
+                        <div class="opacity-60">${p.data}</div>
                     </div>`;
             });
             lucide.createIcons();
         }
 
         window.excluirPartida = async (id) => {
-            if (!confirm("Excluir partida? Os pontos serão estornados!")) return;
-            try {
-                const p = (await getDoc(doc(db, "partidas", id))).data();
-                if(!p) return;
-                const batch = writeBatch(db);
-                if (p.modo !== 'amistoso') {
-                    const win = p.vencedor === 'branco' ? p.branco : p.preto;
-                    const lose = p.vencedor === 'branco' ? p.preto : p.branco;
-                    win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(-1), saldo: increment(-1) }));
-                    if(p.modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(-1), saldo: increment(1) }));
-                }
-                batch.delete(doc(db, "partidas", id));
-                await batch.commit();
-                init();
-            } catch(e) { alert("Erro ao excluir."); }
+            if (!confirm("Deseja excluir? Os pontos serão estornados!")) return;
+            const pSnap = await getDoc(doc(db, "partidas", id));
+            const p = pSnap.data();
+            const batch = writeBatch(db);
+            if (p.modo !== 'amistoso') {
+                const win = p.vencedor === 'branco' ? p.branco : p.preto;
+                const lose = p.vencedor === 'branco' ? p.preto : p.branco;
+                win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
+                if(p.modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
+            }
+            batch.delete(doc(db, "partidas", id));
+            await batch.commit();
+            location.reload();
         }
 
-        window.resetarSaldos = async () => {
-            if(!confirm("Zerar TODO o ranking? Isso não pode ser desfeito!")) return;
+        window.resetarTudo = async () => {
+            if(!confirm("Cuidado! Isto vai apagar todos os jogos e colocar os saldos a ZERO. Confirmas?")) return;
             const batch = writeBatch(db);
-            const snapJ = await getDocs(collection(db, "jogadores"));
-            snapJ.forEach(d => batch.update(doc(db, "jogadores", d.id), { v: 0, d: 0, saldo: 0, historico: [] }));
-            const snapP = await getDocs(collection(db, "partidas"));
-            snapP.forEach(d => batch.delete(doc(db, "partidas", d.id)));
+            const jSnap = await getDocs(collection(db, "jogadores"));
+            jSnap.forEach(d => batch.update(doc(db, "jogadores", d.id), { v: 0, d: 0, saldo: 0, historico: [] }));
+            const pSnap = await getDocs(collection(db, "partidas"));
+            pSnap.forEach(d => batch.delete(doc(db, "partidas", d.id)));
             await batch.commit();
             location.reload();
         }
 
         window.finalizarPartida = async () => {
-            const idEd = document.getElementById('edit-partida-id').value;
-            const modo = document.getElementById('modo-ponto').value;
-            const vence = document.getElementById('vencedor').value;
-            const data = document.getElementById('data-jogo').value;
-            if(!data || !timeB.length || !timeP.length) return alert("Preencha tudo!");
-            if(idEd) return alert("Para mudar times/vencedor, exclua a partida e lance de novo para manter o saldo correto.");
-
+            if(!timeB.length || !timeP.length) return alert("Adiciona jogadores!");
+            const vence = document.getElementById('vencedor').value, modo = document.getElementById('modo-ponto').value, data = document.getElementById('data-jogo').value;
             const batch = writeBatch(db);
             const pRef = doc(collection(db, "partidas"));
-            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, penaltis: document.getElementById('penaltis').checked, modo, timestamp: Date.now() });
-            
+            batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, timestamp: Date.now() });
             if(modo !== 'amistoso') {
-                const win = vence === 'branco' ? timeB : timeP;
-                const lose = vence === 'branco' ? timeP : timeB;
-                win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1), historico: arrayUnion('v') }));
-                if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1), historico: arrayUnion('d') }));
+                const win = vence === 'branco' ? timeB : timeP, lose = vence === 'branco' ? timeP : timeB;
+                win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1) }));
+                if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1) }));
             }
             await batch.commit();
             location.reload();
         }
 
         window.salvarNovoJogador = async () => {
-            const id = document.getElementById('edit-id').value, nome = document.getElementById('add-nome').value, gt = document.getElementById('add-apelido').value.toUpperCase();
-            if(!nome || !gt) return;
-            if(id) await updateDoc(doc(db, "jogadores", id), { nome, apelido: gt });
-            else await addDoc(collection(db, "jogadores"), { nome, apelido: gt, visivel: true, v: 0, d: 0, saldo: 0, historico: [] });
-            limparFormJogador(); init();
-        }
-
-        window.prepararEdicaoPartida = (id, p) => {
-            document.getElementById('edit-partida-id').value = id;
-            document.getElementById('data-jogo').value = p.data;
-            document.getElementById('modo-ponto').value = p.modo;
-            document.getElementById('vencedor').value = p.vencedor;
-            document.getElementById('penaltis').checked = p.penaltis;
-            document.getElementById('tags-branco').innerHTML = ''; document.getElementById('tags-preto').innerHTML = '';
-            timeB = []; timeP = [];
-            p.branco.forEach(id => adicionarTagPorId(id, 'tags-branco'));
-            p.preto.forEach(id => adicionarTagPorId(id, 'tags-preto'));
-            document.getElementById('label-partida').textContent = "Visualizando Partida";
-            document.getElementById('btn-cancelar-partida').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function adicionarTagPorId(id, tagsId) {
-            const j = cacheJogadores.find(x => x.id === id); if(!j) return;
-            if(tagsId === 'tags-branco') timeB.push(id); else timeP.push(id);
-            const tag = document.createElement('div');
-            tag.className = "bg-slate-800 px-2 py-1.5 rounded-lg text-[9px] font-bold flex items-center gap-1.5 border border-white/10";
-            tag.innerHTML = `${j.nome} <button onclick="removerTag('${id}', '${tagsId}', this)" class="text-red-500">✕</button>`;
-            document.getElementById(tagsId).appendChild(tag);
-        }
-
-        window.removerTag = (id, tagsId, el) => {
-            if(tagsId === 'tags-branco') timeB = timeB.filter(x => x !== id); else timeP = timeP.filter(x => x !== id);
-            el.parentElement.remove();
+            const id = document.getElementById('edit-id').value, n = document.getElementById('add-nome').value, gt = document.getElementById('add-apelido').value.toUpperCase();
+            if(!n || !gt) return;
+            if(id) await updateDoc(doc(db, "jogadores", id), { nome: n, apelido: gt });
+            else await addDoc(collection(db, "jogadores"), { nome: n, apelido: gt, v: 0, d: 0, saldo: 0, historico: [], visivel: true });
+            location.reload();
         }
 
         window.buscarSugestoes = (input, sugId, tagsId) => {
@@ -310,27 +226,18 @@
             const f = cacheJogadores.filter(j => j.nome.toLowerCase().includes(txt) && !timeB.includes(j.id) && !timeP.includes(j.id));
             f.forEach(j => {
                 const d = document.createElement('div'); d.className = "p-3 sugestao-item cursor-pointer border-b border-white/5 text-xs font-bold";
-                d.textContent = j.nome; d.onclick = () => { adicionarTagPorId(j.id, tagsId); input.value = ''; box.classList.add('hidden'); };
+                d.textContent = j.nome; d.onclick = () => { 
+                    if(tagsId === 'tags-branco') timeB.push(j.id); else timeP.push(j.id);
+                    document.getElementById(tagsId).innerHTML += `<div class="bg-slate-800 px-2 py-1 rounded text-[10px]">${j.nome}</div>`;
+                    input.value = ''; box.classList.add('hidden'); 
+                };
                 box.appendChild(d);
             });
-            box.classList.toggle('hidden', !f.length);
+            box.classList.remove('hidden');
         }
 
-        window.prepararEdicao = (id, n, a) => { 
-            document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; 
-            document.getElementById('add-apelido').value = a; document.getElementById('btn-cancelar-edit').classList.remove('hidden'); 
-        };
-        window.limparFormJogador = () => { 
-            document.getElementById('edit-id').value = ''; document.getElementById('add-nome').value = ''; 
-            document.getElementById('add-apelido').value = ''; document.getElementById('btn-cancelar-edit').classList.add('hidden'); 
-        };
-        window.limparFormPartida = () => { 
-            document.getElementById('edit-partida-id').value = ''; document.getElementById('tags-branco').innerHTML = ''; 
-            document.getElementById('tags-preto').innerHTML = ''; timeB = []; timeP = []; 
-            document.getElementById('label-partida').textContent = "Lançar Partida"; document.getElementById('btn-cancelar-partida').classList.add('hidden'); 
-        };
-        window.toggleVis = async (id, s) => { await updateDoc(doc(db, "jogadores", id), { visivel: !s }); init(); };
-        window.excluirJogador = async (id) => { if(confirm("Excluir?")) { await deleteDoc(doc(db, "jogadores", id)); init(); } };
+        window.prepararEdicao = (id, n, a) => { document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; document.getElementById('add-apelido').value = a; };
+        window.excluirJogador = async (id) => { if(confirm("Eliminar jogador?")) { await deleteDoc(doc(db, "jogadores", id)); location.reload(); } };
 
         init();
     </script>
