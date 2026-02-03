@@ -170,7 +170,6 @@
                 } else if (c === 'totalJ') {
                     res = (a.totalJ - b.totalJ) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
                 } else if (c === 'aprov') {
-                    // Hierarquia: % -> Saldo -> + Partidas -> + Vitorias Recentes
                     res = (a.aprov - b.aprov) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ) || (a.streakValue - b.streakValue);
                 } else if (c === 'recentes') {
                     res = (a.streakValue - b.streakValue) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ);
@@ -192,7 +191,9 @@
                         <i data-lucide="medal" class="w-1.5 h-1.5"></i> CAMPEÃO
                     </span>` : '';
 
-                const fireEmoji = (j.rawHist.length === 5 && j.rawHist.every(r => r === 'v')) ? `<span class="hot-streak mr-1">🔥</span>` : '';
+                // ALTERADO: Agora exige 3 vitórias consecutivas ('v') para o foguinho
+                const ultimosTres = j.rawHist.slice(0, 3);
+                const fireEmoji = (ultimosTres.length === 3 && ultimosTres.every(r => r === 'v')) ? `<span class="hot-streak mr-1">🔥</span>` : '';
 
                 let bolinhas = "";
                 for(let k = 0; k < 5; k++) {
