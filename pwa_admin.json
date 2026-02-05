@@ -1,0 +1,16 @@
+{
+  "name": "Admin - Ranking",
+  "short_name": "Admin",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "icone_admin.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
