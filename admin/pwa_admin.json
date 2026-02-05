@@ -1,8 +1,8 @@
 {
-  "id": "app-pelada-admin",
+  "id": "pelada-admin-v1",
   "name": "Painel Admin Pelada",
   "short_name": "Admin",
-  "start_url": "./index.html", 
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0a0b10",
@@ -12,7 +12,7 @@
       "src": "icone_admin.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     }
   ]
 }
