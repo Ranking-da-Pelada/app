@@ -1,4 +1,5 @@
 {
+  "id": "app-pelada-publico",
   "name": "Ranking da Pelada 2026",
   "short_name": "Pelada",
   "start_url": "/app/index.html",
