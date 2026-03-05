@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin | Pelada 2026</title>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin | Pelada 2026</title>
 
     <link rel="manifest" href="pwa_admin.json">
     <link rel="icon" type="image/png" href="icone_admin.png">
@@ -17,7 +13,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-
         body { background: #070a13; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
@@ -36,7 +31,12 @@
                 <h1 class="text-xl font-black text-emerald-500 italic uppercase leading-none">Painel Admin</h1>
                 <p class="text-slate-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">Temporada 2026</p>
             </div>
-            <button onclick="resetarTudo()" class="text-[9px] bg-red-600/20 text-red-500 border border-red-500/30 px-3 py-2 rounded-xl font-bold uppercase hover:bg-red-600 hover:text-white transition">Zerar Ranking</button>
+            <div class="flex gap-2">
+                <button onclick="baixarBackup()" class="text-[9px] bg-blue-600/20 text-blue-500 border border-blue-500/30 px-3 py-2 rounded-xl font-bold uppercase hover:bg-blue-600 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="download" class="w-3 h-3"></i> Backup
+                </button>
+                <button onclick="resetarTudo()" class="text-[9px] bg-red-600/20 text-red-500 border border-red-500/30 px-3 py-2 rounded-xl font-bold uppercase hover:bg-red-600 hover:text-white transition">Zerar Ranking</button>
+            </div>
         </header>
 
         <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6">
@@ -142,7 +142,6 @@
         }
 
         async function carregarDados() {
-            // Ordenando agora exclusivamente pela data da partida (mais recente primeiro)
             const snapP = await getDocs(query(collection(db, "partidas"), orderBy("data", "desc")));
             todasAsPartidas = [];
             snapP.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
@@ -230,6 +229,17 @@
             lucide.createIcons();
         }
 
+        // FUNÇÃO DE BACKUP
+        window.baixarBackup = () => {
+            if (!cacheJogadores.length && !todasAsPartidas.length) return alert("Não há dados!");
+            const backup = { timestamp: new Date().toISOString(), jogadores: cacheJogadores, partidas: todasAsPartidas };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `backup_pelada_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`);
+            dl.click();
+        };
+
         window.finalizarPartida = async () => {
             const data = document.getElementById('data-jogo').value;
             if(!timeB.length || !timeP.length || !data) return alert("Preencha tudo!");
@@ -246,21 +256,17 @@
         }
 
         window.excluirPartida = async (id) => {
-            if (confirm("Excluir esta partida e ESTORNAR os pontos dos jogadores?")) {
+            if (confirm("Excluir partida e estornar pontos?")) {
                 const pSnap = todasAsPartidas.find(p => p.id === id);
                 if (!pSnap) return;
-
                 let batch = writeBatch(db);
                 const { vencedor, modo, branco, preto } = pSnap;
-
                 if (modo !== 'amistoso') {
                     const win = vencedor === 'branco' ? branco : preto;
                     const lose = vencedor === 'branco' ? preto : branco;
-
                     win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
                     if (modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
                 }
-
                 batch.delete(doc(db, "partidas", id));
                 await batch.commit(); location.reload();
             }
@@ -294,16 +300,11 @@
         init();
     </script>
     <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      // O ../ é fundamental agora!
-      navigator.serviceWorker.register('../sw.js');
-    });
-  }
-</script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('../sw.js');
+            });
+        }
+    </script>
 </body>
 </html>
-</body>
-</html>
-
-
