@@ -229,15 +229,48 @@
             lucide.createIcons();
         }
 
-        // FUNÇÃO DE BACKUP
+        // NOVA FUNÇÃO DE BACKUP HÍBRIDO (TXT + JSON)
         window.baixarBackup = () => {
             if (!cacheJogadores.length && !todasAsPartidas.length) return alert("Não há dados!");
-            const backup = { timestamp: new Date().toISOString(), jogadores: cacheJogadores, partidas: todasAsPartidas };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+
+            let relatorio = `=== BACKUP PELADA 2026 ===\n`;
+            relatorio += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n`;
+            relatorio += `-------------------------------------------\n\n`;
+
+            relatorio += `RANKING ATUAL:\n`;
+            relatorio += `NOME            | GT   | SALDO | V | JOGOS\n`;
+            
+            const rankingResumo = [...cacheJogadores].sort((a,b) => b.saldo - a.saldo);
+            rankingResumo.forEach(j => {
+                relatorio += `${j.nome.padEnd(15).substring(0,15)} | ${j.apelido.padEnd(4).substring(0,4)} | ${String(j.saldo).padStart(5)} | ${String(j.v).padStart(1)} | ${j.totalJ}\n`;
+            });
+
+            relatorio += `\n-------------------------------------------\n\n`;
+            relatorio += `HISTÓRICO DE PARTIDAS:\n`;
+
+            todasAsPartidas.forEach(p => {
+                const nomesB = p.branco.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
+                const nomesP = p.preto.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
+                
+                relatorio += `DATA: ${p.data.split('-').reverse().join('/')}\n`;
+                relatorio += `VENCEDOR: ${p.vencedor.toUpperCase()} ${p.penaltis ? '(PEN)' : ''} | MODO: ${p.modo}\n`;
+                relatorio += `BRANCO: ${nomesB}\n`;
+                relatorio += `PRETO:  ${nomesP}\n`;
+                relatorio += `-------------------\n`;
+            });
+
+            // Código para restauração técnica (JSON) ao final do arquivo
+            const dadosBrutos = { timestamp: new Date().toISOString(), jogadores: cacheJogadores, partidas: todasAsPartidas };
+            relatorio += `\n\n### RESTAURAR_SISTEMA_NAO_EDITAR_ABAIXO ###\n`;
+            relatorio += JSON.stringify(dadosBrutos);
+
+            const blob = new Blob([relatorio], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
             const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", `backup_pelada_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`);
+            dl.href = url;
+            dl.download = `backup_pelada_${new Date().toLocaleDateString().replace(/\//g, '-')}.txt`;
             dl.click();
+            URL.revokeObjectURL(url);
         };
 
         window.finalizarPartida = async () => {
