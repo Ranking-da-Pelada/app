@@ -4,36 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ranking da Pelada | 2026</title>
-
     <link rel="icon" type="image/png" href="/app/icone.png">
     <link rel="apple-touch-icon" href="/app/icone.png">
     <link rel="manifest" href="/app/pwa.json">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .ranking-card:hover { background: rgba(255, 255, 255, 0.06); transition: 0.3s; }
-        
         .pos-badge { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: 0 auto; border-radius: 50%; font-size: 11px; font-weight: 900; }
         .pos-1 { border: 1.5px solid #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
         .pos-2 { border: 1.5px solid #94a3b8; color: #f1f5f9; background: rgba(148, 163, 184, 0.1); }
         .pos-3 { border: 1.5px solid #92400e; color: #f97316; background: rgba(146, 64, 14, 0.1); }
         .pos-other { color: #64748b; font-size: 11px; }
-
         th.sortable { cursor: pointer; user-select: none; transition: 0.2s; white-space: nowrap; }
         .sort-icon { font-size: 0.5rem; margin-left: 1px; vertical-align: middle; color: #10b981; }
-
-        @keyframes flame {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.08); opacity: 1; }
-        }
-        .hot-streak { 
-            animation: flame 2s infinite ease-in-out; 
-            display: inline-block; 
-        }
-        
+        @keyframes flame { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.08); opacity: 1; } }
+        .hot-streak { animation: flame 2s infinite ease-in-out; display: inline-block; }
         @media (max-width: 640px) {
             .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
             .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -42,31 +30,24 @@
     </style>
 </head>
 <body class="p-2 md:p-8 pb-20">
-
     <div class="max-w-6xl mx-auto">
         <header class="flex justify-between items-center mb-5 w-full px-1">
             <div class="flex flex-col">
                 <h1 class="text-xl md:text-4xl font-black tracking-tighter uppercase leading-none">
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ranking da Pelada</span> ⚽<span>🍻</span>
                 </h1>
-                <div class="inline-block text-emerald-400/80 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1">
-                    Temporada 2026
-                </div>
+                <div class="inline-block text-emerald-400/80 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1">Temporada 2026</div>
             </div>
-            
             <div class="glass px-3 py-1.5 rounded-lg border-emerald-500/20 flex flex-col items-center justify-center min-w-[80px]">
                 <p class="text-[7px] text-slate-500 uppercase font-black tracking-tighter leading-tight mb-0.5">Total de Partidas</p>
                 <p id="total-partidas-liga" class="text-sm md:text-xl font-black text-emerald-400 leading-none">0</p>
             </div>
         </header>
-
         <div class="mb-4 px-1">
             <p id="ultima-partida" class="text-slate-500 text-[8px] md:text-[10px] uppercase tracking-widest italic font-bold flex items-center gap-1.5">
-                <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
-                Carregando...
+                <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Carregando...
             </p>
         </div>
-
         <div class="glass rounded-xl overflow-hidden shadow-2xl mb-8">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse table-compact">
@@ -86,7 +67,6 @@
                 </table>
             </div>
         </div>
-
         <div class="space-y-3">
             <h2 class="font-bold flex items-center gap-2 uppercase tracking-widest text-[9px] ml-1 text-slate-500">
                 <i data-lucide="history" class="text-emerald-500 w-3 h-3"></i> Histórico de Partidas
@@ -94,11 +74,9 @@
             <div id="historico-lista" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
         const firebaseConfig = {
             apiKey: "AIzaSyAN-K0QORHude3h_WQ8TrLBiA2VyuV04rY",
             authDomain: "ranking-pelada-2026.firebaseapp.com",
@@ -107,101 +85,75 @@
             messagingSenderId: "893456950171",
             appId: "1:893456950171:web:a256af4e982bfc9c8a373e"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
         let dadosJogadores = [];
         let todasAsPartidas = [];
         let ordenacaoAtual = { campo: 'saldo', crescente: false };
-
         async function carregarDados() {
             try {
                 const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
                 todasAsPartidas = [];
                 pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
                 document.getElementById('total-partidas-liga').textContent = todasAsPartidas.length;
-
                 if(todasAsPartidas.length > 0) {
                     const ultima = todasAsPartidas[0];
                     document.getElementById('ultima-partida').innerHTML = `<span class="w-1 h-1 rounded-full bg-emerald-500"></span> Última: ${ultima.data.split('-').reverse().join('/')}`;
                 }
-
                 const jSnap = await getDocs(collection(db, "jogadores"));
                 dadosJogadores = [];
-                
                 jSnap.forEach(d => {
                     const j = d.data();
                     const jId = d.id;
-                    if(j.visivel !== false) {
-                        let histForma = [];
-                        let pj = 0;
-                        for (let p of todasAsPartidas) {
-                            const noBranco = p.branco.includes(jId);
-                            const noPreto = p.preto.includes(jId);
-                            if (noBranco || noPreto) {
-                                pj++;
-                                if (histForma.length < 5) {
-                                    if (p.modo === 'amistoso') histForma.push('a');
-                                    else histForma.push(((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto')) ? 'v' : 'd');
-                                }
+                    let histForma = [];
+                    let pj = 0;
+                    for (let p of todasAsPartidas) {
+                        const noBranco = p.branco.includes(jId);
+                        const noPreto = p.preto.includes(jId);
+                        if (noBranco || noPreto) {
+                            pj++;
+                            if (histForma.length < 5) {
+                                if (p.modo === 'amistoso') histForma.push('a');
+                                else histForma.push(((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto')) ? 'v' : 'd');
                             }
                         }
-                        const v = j.v || 0;
-                        let streakValue = 0;
-                        for(let i=0; i<histForma.length; i++) {
-                            if(histForma[i] === 'v') streakValue += Math.pow(2, 5-i);
-                        }
-
-                        dadosJogadores.push({ ...j, id: jId, v, d: j.d || 0, saldo: j.saldo || 0, totalJ: pj, aprov: pj > 0 ? Math.round((v / pj) * 100) : 0, hist: [...histForma].reverse(), rawHist: histForma, streakValue });
                     }
+                    const v = j.v || 0;
+                    let streakValue = 0;
+                    for(let i=0; i<histForma.length; i++) {
+                        if(histForma[i] === 'v') streakValue += Math.pow(2, 5-i);
+                    }
+                    dadosJogadores.push({ ...j, id: jId, v, d: j.d || 0, saldo: j.saldo || 0, totalJ: pj, aprov: pj > 0 ? Math.round((v / pj) * 100) : 0, hist: [...histForma].reverse(), rawHist: histForma, streakValue });
                 });
                 renderizarRanking();
                 renderizarHistorico(todasAsPartidas);
             } catch (err) { console.error(err); }
         }
-
         function renderizarRanking() {
             const tbody = document.getElementById('tabela-body');
             const mult = ordenacaoAtual.crescente ? 1 : -1;
-            
-            dadosJogadores.sort((a, b) => {
+            const jogadoresFiltrados = dadosJogadores.filter(j => j.visivel !== false);
+            jogadoresFiltrados.sort((a, b) => {
                 let res = 0;
                 const c = ordenacaoAtual.campo;
-
-                if (c === 'saldo') {
-                    res = (a.saldo - b.saldo) || (a.v - b.v) || (a.streakValue - b.streakValue);
-                } else if (c === 'v') {
-                    res = (a.v - b.v) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
-                } else if (c === 'd') {
-                    res = (a.d - b.d) || ((b.saldo - a.saldo) * mult) || ((b.streakValue - a.streakValue) * mult);
-                } else if (c === 'totalJ') {
-                    res = (a.totalJ - b.totalJ) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
-                } else if (c === 'aprov') {
-                    res = (a.aprov - b.aprov) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ) || (a.streakValue - b.streakValue);
-                } else if (c === 'recentes') {
-                    res = (a.streakValue - b.streakValue) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ);
-                }
-
+                if (c === 'saldo') res = (a.saldo - b.saldo) || (a.v - b.v) || (a.streakValue - b.streakValue);
+                else if (c === 'v') res = (a.v - b.v) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
+                else if (c === 'd') res = (a.d - b.d) || ((b.saldo - a.saldo) * mult) || ((b.streakValue - a.streakValue) * mult);
+                else if (c === 'totalJ') res = (a.totalJ - b.totalJ) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
+                else if (c === 'aprov') res = (a.aprov - b.aprov) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ) || (a.streakValue - b.streakValue);
+                else if (c === 'recentes') res = (a.streakValue - b.streakValue) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ);
                 if (res !== 0) return res * mult;
                 return mult === -1 ? a.nome.localeCompare(b.nome) : b.nome.localeCompare(a.nome);
             });
-
             tbody.innerHTML = '';
-            dadosJogadores.forEach((j, i) => {
+            jogadoresFiltrados.forEach((j, i) => {
                 const pos = i + 1;
                 const formatSaldo = j.saldo > 0 ? `+${j.saldo}` : j.saldo;
                 const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
                 const posHtml = pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`;
-                
-                const badgeCampeao = j.nome.toLowerCase().includes('guerra') ? 
-                    `<span class="px-1 py-0.5 rounded-[3px] bg-amber-500/10 border border-amber-500/20 text-[5px] text-amber-500 font-black uppercase flex items-center gap-0.5 whitespace-nowrap">
-                        <i data-lucide="medal" class="w-1.5 h-1.5"></i> CAMPEÃO
-                    </span>` : '';
-
+                const badgeCampeao = j.nome.toLowerCase().includes('guerra') ? `<span class="px-1 py-0.5 rounded-[3px] bg-amber-500/10 border border-amber-500/20 text-[5px] text-amber-500 font-black uppercase flex items-center gap-0.5 whitespace-nowrap"><i data-lucide="medal" class="w-1.5 h-1.5"></i> CAMPEÃO</span>` : '';
                 const ultimosTres = j.rawHist.slice(0, 3);
                 const fireEmoji = (ultimosTres.length === 3 && ultimosTres.every(r => r === 'v')) ? `<span class="hot-streak mr-1">🔥</span>` : '';
-
                 let bolinhas = "";
                 for(let k = 0; k < 5; k++) {
                     const res = j.hist[k];
@@ -210,7 +162,6 @@
                     else if (res === 'a') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-slate-500"></span>`;
                     else bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/5"></span>`;
                 }
-
                 tbody.innerHTML += `
                     <tr class="ranking-card border-b border-white/[0.02]">
                         <td class="py-2.5 text-center font-black">${posHtml}</td>
@@ -234,15 +185,13 @@
                                 <div class="flex gap-0.5">${bolinhas}</div>
                             </div>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
             document.querySelectorAll('.sort-icon').forEach(el => el.innerHTML = '');
             const span = document.getElementById(`sort-${ordenacaoAtual.campo}`);
             if(span) span.innerHTML = `<i data-lucide="${ordenacaoAtual.crescente ? 'chevron-up' : 'chevron-down'}" class="w-2 h-2 inline"></i>`;
             lucide.createIcons();
         }
-
         function renderizarHistorico(partidas) {
             const container = document.getElementById('historico-lista');
             container.innerHTML = '';
@@ -262,18 +211,15 @@
                         <div class="mt-2 pt-1.5 border-t border-white/5 text-[8px] font-black uppercase italic ${p.vencedor === 'branco' ? 'text-emerald-400' : 'text-cyan-400'}">
                             Vencedor: ${p.vencedor} ${p.penaltis ? '(penaltis)' : ''}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
             lucide.createIcons();
         }
-
         window.ordenar = (campo) => {
             if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
             else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
             renderizarRanking();
         };
-
         carregarDados();
     </script>
     <script>
@@ -285,16 +231,3 @@
     </script>
 </body>
 </html>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
