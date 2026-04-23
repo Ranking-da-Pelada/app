@@ -269,23 +269,23 @@
                 return `
                     <div class="glass overflow-hidden rounded-xl border border-white/5 shadow-2xl">
                         <div class="bg-black/30 px-3 py-2 flex justify-between items-center border-b border-white/10">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${p.data.split('-').reverse().join('/')}</span>
-                            <span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-500 uppercase italic">${p.modo}</span>
+                            <span class="text-[9px] font-black text-slate-200 uppercase tracking-widest">${p.data.split('-').reverse().join('/')}</span>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-300 uppercase italic">${p.modo}</span>
                         </div>
                         <div class="p-4 grid grid-cols-2 gap-4 relative">
                             <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-white/20 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black text-white italic z-10 shadow-xl">VS</div>
                             
                             <div class="${venceuBranco ? 'opacity-100' : 'opacity-30'} text-center">
-                                <div class="flex items-center justify-center gap-1.5 mb-2">
+                                <div class="flex items-center justify-center gap-1.5 mb-3">
                                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                                    <span class="text-[10px] font-black uppercase text-white tracking-widest">Branco</span>
+                                    <span class="text-[10px] font-black uppercase text-white tracking-[0.2em] underline decoration-white decoration-2 underline-offset-4">Branco</span>
                                 </div>
                                 <p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesB.join('<br>')}</p>
                             </div>
                             <div class="${!venceuBranco ? 'opacity-100' : 'opacity-30'} text-center">
-                                <div class="flex items-center justify-center gap-1.5 mb-2">
+                                <div class="flex items-center justify-center gap-1.5 mb-3">
                                     <span class="w-1.5 h-1.5 rounded-full bg-slate-900 border border-white/20"></span>
-                                    <span class="text-[10px] font-black uppercase text-slate-300 tracking-widest">Preto</span>
+                                    <span class="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em] underline decoration-slate-400 decoration-2 underline-offset-4">Preto</span>
                                 </div>
                                 <p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesP.join('<br>')}</p>
                             </div>
