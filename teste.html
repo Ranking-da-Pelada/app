@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ranking da Pelada | 2026</title>
+    <link rel="icon" type="image/png" href="/app/icone.png">
+    <link rel="apple-touch-icon" href="/app/icone.png">
+    <link rel="manifest" href="/app/pwa.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .ranking-card:hover { background: rgba(255, 255, 255, 0.06); transition: 0.3s; }
+        .pos-badge { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: 0 auto; border-radius: 50%; font-size: 11px; font-weight: 900; }
+        .pos-1 { border: 1.5px solid #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .pos-2 { border: 1.5px solid #94a3b8; color: #f1f5f9; background: rgba(148, 163, 184, 0.1); }
+        .pos-3 { border: 1.5px solid #92400e; color: #f97316; background: rgba(146, 64, 14, 0.1); }
+        .pos-other { color: #64748b; font-size: 11px; }
+        th.sortable { cursor: pointer; user-select: none; transition: 0.2s; white-space: nowrap; }
+        .sort-icon { font-size: 0.5rem; margin-left: 1px; vertical-align: middle; color: #10b981; }
+        @keyframes flame { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.08); opacity: 1; } }
+        .hot-streak { animation: flame 2s infinite ease-in-out; display: inline-block; }
+        @media (max-width: 640px) {
+            .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
+            .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .pos-badge { width: 18px; height: 18px; font-size: 9px; }
+        }
+    </style>
+</head>
+<body class="p-2 md:p-8 pb-20">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-5 w-full px-1">
+            <div class="flex flex-col">
+                <h1 class="text-xl md:text-4xl font-black tracking-tighter uppercase leading-none">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ranking da Pelada</span> ⚽<span>🍻</span>
+                </h1>
+                <div class="inline-block text-emerald-400/80 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1">Temporada 2026</div>
+            </div>
+            <div class="glass px-3 py-1.5 rounded-lg border-emerald-500/20 flex flex-col items-center justify-center min-w-[80px]">
+                <p class="text-[7px] text-slate-500 uppercase font-black tracking-tighter leading-tight mb-0.5">Total de Partidas</p>
+                <p id="total-partidas-liga" class="text-sm md:text-xl font-black text-emerald-400 leading-none">0</p>
+            </div>
+        </header>
+        <div class="mb-4 px-1">
+            <p id="ultima-partida" class="text-slate-500 text-[8px] md:text-[10px] uppercase tracking-widest italic font-bold flex items-center gap-1.5">
+                <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Carregando...
+            </p>
+        </div>
+        <div class="glass rounded-xl overflow-hidden shadow-2xl mb-8">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse table-compact">
+                    <thead>
+                        <tr class="text-slate-500 text-[8px] uppercase tracking-tighter border-b border-white/5 bg-white/5">
+                            <th class="py-3 px-2 w-8 text-center">#</th>
+                            <th class="py-3 pl-2">Jogador</th>
+                            <th class="text-center sortable w-8" onclick="ordenar('saldo')">S<span id="sort-saldo" class="sort-icon"></span></th>
+                            <th class="text-center sortable w-6" onclick="ordenar('v')">V<span id="sort-v" class="sort-icon"></span></th>
+                            <th class="text-center sortable w-6" onclick="ordenar('d')">D<span id="sort-d" class="sort-icon"></span></th>
+                            <th class="text-center sortable w-6" onclick="ordenar('totalJ')">P<span id="sort-totalJ" class="sort-icon"></span></th>
+                            <th class="text-center sortable w-10" onclick="ordenar('aprov')">%<span id="sort-aprov" class="sort-icon"></span></th>
+                            <th class="py-3 pr-4 text-right sortable w-20" onclick="ordenar('recentes')">Recentes<span id="sort-recentes" class="sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-body" class="divide-y divide-white/5 text-[10px] md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="space-y-3">
+            <h2 class="font-bold flex items-center gap-2 uppercase tracking-widest text-[9px] ml-1 text-slate-500">
+                <i data-lucide="history" class="text-emerald-500 w-3 h-3"></i> Histórico de Partidas
+            </h2>
+            <div id="historico-lista" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyAN-K0QORHude3h_WQ8TrLBiA2VyuV04rY",
+            authDomain: "ranking-pelada-2026.firebaseapp.com",
+            projectId: "ranking-pelada-2026",
+            storageBucket: "ranking-pelada-2026.firebasestorage.app",
+            messagingSenderId: "893456950171",
+            appId: "1:893456950171:web:a256af4e982bfc9c8a373e"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let dadosJogadores = [];
+        let todasAsPartidas = [];
+        let ordenacaoAtual = { campo: 'saldo', crescente: false };
+        async function carregarDados() {
+            try {
+                const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
+                todasAsPartidas = [];
+                pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
+                document.getElementById('total-partidas-liga').textContent = todasAsPartidas.length;
+                if(todasAsPartidas.length > 0) {
+                    const ultima = todasAsPartidas[0];
+                    document.getElementById('ultima-partida').innerHTML = `<span class="w-1 h-1 rounded-full bg-emerald-500"></span> Última: ${ultima.data.split('-').reverse().join('/')}`;
+                }
+                const jSnap = await getDocs(collection(db, "jogadores"));
+                dadosJogadores = [];
+                jSnap.forEach(d => {
+                    const j = d.data();
+                    const jId = d.id;
+                    let histForma = [];
+                    let pj = 0;
+                    for (let p of todasAsPartidas) {
+                        const noBranco = p.branco.includes(jId);
+                        const noPreto = p.preto.includes(jId);
+                        if (noBranco || noPreto) {
+                            pj++;
+                            if (histForma.length < 5) {
+                                if (p.modo === 'amistoso') histForma.push('a');
+                                else histForma.push(((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto')) ? 'v' : 'd');
+                            }
+                        }
+                    }
+                    const v = j.v || 0;
+                    let streakValue = 0;
+                    for(let i=0; i<histForma.length; i++) {
+                        if(histForma[i] === 'v') streakValue += Math.pow(2, 5-i);
+                    }
+                    dadosJogadores.push({ ...j, id: jId, v, d: j.d || 0, saldo: j.saldo || 0, totalJ: pj, aprov: pj > 0 ? Math.round((v / pj) * 100) : 0, hist: [...histForma].reverse(), rawHist: histForma, streakValue });
+                });
+                renderizarRanking();
+                renderizarHistorico(todasAsPartidas);
+            } catch (err) { console.error(err); }
+        }
+        function renderizarRanking() {
+            const tbody = document.getElementById('tabela-body');
+            const mult = ordenacaoAtual.crescente ? 1 : -1;
+            const jogadoresFiltrados = dadosJogadores.filter(j => j.visivel !== false);
+            jogadoresFiltrados.sort((a, b) => {
+                let res = 0;
+                const c = ordenacaoAtual.campo;
+                if (c === 'saldo') res = (a.saldo - b.saldo) || (a.v - b.v) || (a.streakValue - b.streakValue);
+                else if (c === 'v') res = (a.v - b.v) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
+                else if (c === 'd') res = (a.d - b.d) || ((b.saldo - a.saldo) * mult) || ((b.streakValue - a.streakValue) * mult);
+                else if (c === 'totalJ') res = (a.totalJ - b.totalJ) || (a.saldo - b.saldo) || (a.streakValue - b.streakValue);
+                else if (c === 'aprov') res = (a.aprov - b.aprov) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ) || (a.streakValue - b.streakValue);
+                else if (c === 'recentes') res = (a.streakValue - b.streakValue) || (a.saldo - b.saldo) || (a.totalJ - b.totalJ);
+                if (res !== 0) return res * mult;
+                return mult === -1 ? a.nome.localeCompare(b.nome) : b.nome.localeCompare(a.nome);
+            });
+            tbody.innerHTML = '';
+            jogadoresFiltrados.forEach((j, i) => {
+                const pos = i + 1;
+                const formatSaldo = j.saldo > 0 ? `+${j.saldo}` : j.saldo;
+                const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
+                const posHtml = pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`;
+                const badgeCampeao = j.nome.toLowerCase().includes('guerra') ? `<span class="px-1 py-0.5 rounded-[3px] bg-amber-500/10 border border-amber-500/20 text-[5px] text-amber-500 font-black uppercase flex items-center gap-0.5 whitespace-nowrap"><i data-lucide="medal" class="w-1.5 h-1.5"></i> CAMPEÃO</span>` : '';
+                const ultimosTres = j.rawHist.slice(0, 3);
+                const fireEmoji = (ultimosTres.length === 3 && ultimosTres.every(r => r === 'v')) ? `<span class="hot-streak mr-1">🔥</span>` : '';
+                let bolinhas = "";
+                for(let k = 0; k < 5; k++) {
+                    const res = j.hist[k];
+                    if (res === 'v') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>`;
+                    else if (res === 'd') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-red-600 shadow-[0_0_5px_rgba(220,38,38,0.5)]"></span>`;
+                    else if (res === 'a') bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-slate-500"></span>`;
+                    else bolinhas += `<span class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/5"></span>`;
+                }
+                tbody.innerHTML += `
+                    <tr class="ranking-card border-b border-white/[0.02]">
+                        <td class="py-2.5 text-center font-black">${posHtml}</td>
+                        <td class="py-2.5 pl-2">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold text-[7px] text-slate-500 uppercase border border-white/5 shrink-0">${j.apelido || '??'}</div>
+                                <div class="flex items-center gap-1 overflow-hidden">
+                                    <span class="font-bold uppercase tracking-tighter player-name text-slate-200">${j.nome}</span>
+                                    ${badgeCampeao}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center font-mono font-bold ${corSaldo}">${formatSaldo}</td>
+                        <td class="text-center font-mono text-slate-300">${j.v}</td>
+                        <td class="text-center font-mono text-slate-300">${j.d}</td>
+                        <td class="text-center font-mono text-slate-300">${j.totalJ}</td>
+                        <td class="text-center font-mono font-bold text-slate-400">${j.aprov}%</td>
+                        <td class="py-2.5 pr-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                ${fireEmoji}
+                                <div class="flex gap-0.5">${bolinhas}</div>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            document.querySelectorAll('.sort-icon').forEach(el => el.innerHTML = '');
+            const span = document.getElementById(`sort-${ordenacaoAtual.campo}`);
+            if(span) span.innerHTML = `<i data-lucide="${ordenacaoAtual.crescente ? 'chevron-up' : 'chevron-down'}" class="w-2 h-2 inline"></i>`;
+            lucide.createIcons();
+        }
+        function renderizarHistorico(partidas) {
+            const container = document.getElementById('historico-lista');
+            container.innerHTML = '';
+            partidas.forEach(p => {
+                const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
+                const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
+                container.innerHTML += `
+                    <div class="glass p-3 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-center mb-2 text-[8px] font-black uppercase text-slate-500 border-b border-white/5 pb-1.5">
+                            <span>${p.data.split('-').reverse().join('/')}</span>
+                            <span class="text-emerald-500/50 uppercase">${p.modo}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-[9px]">
+                            <div><p class="text-[7px] text-slate-500 uppercase mb-0.5">Branco</p><p class="text-slate-300 font-medium leading-tight">${nomesB.join(', ')}</p></div>
+                            <div class="border-l border-white/5 pl-2.5"><p class="text-[7px] text-slate-500 uppercase mb-0.5">Preto</p><p class="text-slate-300 font-medium leading-tight">${nomesP.join(', ')}</p></div>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-white/5 text-[8px] font-black uppercase italic ${p.vencedor === 'branco' ? 'text-emerald-400' : 'text-cyan-400'}">
+                            Vencedor: ${p.vencedor} ${p.penaltis ? '(penaltis)' : ''}
+                        </div>
+                    </div>`;
+            });
+            lucide.createIcons();
+        }
+        window.ordenar = (campo) => {
+            if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
+            else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
+            renderizarRanking();
+        };
+        carregarDados();
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log("Service Worker registrado com sucesso!"))
+          .catch(err => console.log("Erro ao registrar Service Worker:", err));
+      }
+    </script>
+</body>
+</html>
