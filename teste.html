@@ -8,7 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
+        body { 
+            background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            min-height: 100vh;
+            padding-top: 140px; /* Empurra o conteúdo para baixo das abas fixas */
+        }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .tab-btn { position: relative; transition: 0.3s; }
         .tab-btn.active { color: #10b981; }
@@ -19,44 +25,44 @@
         .pos-2 { border: 1.5px solid #94a3b8; color: #f1f5f9; background: rgba(148, 163, 184, 0.1); }
         .pos-3 { border: 1.5px solid #92400e; color: #f97316; background: rgba(146, 64, 14, 0.1); }
         @media (max-width: 640px) {
+            body { padding-top: 130px; }
             .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
             .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .titulo-main { font-size: 1.1rem !important; }
         }
     </style>
 </head>
 <body class="pb-10">
     <header class="fixed top-0 left-0 w-full glass z-50 border-b border-white/10">
-    <div class="p-4 max-w-6xl mx-auto">
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex flex-col">
-                <h1 class="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ranking da Pelada</span> ⚽<span>🍻</span>
-                </h1>
-                <div class="text-emerald-400/80 text-[9px] font-black uppercase tracking-[0.2em] mt-1">Temporada 2026</div>
+        <div class="p-3 md:p-4 max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex flex-col">
+                    <h1 class="titulo-main text-lg md:text-2xl font-black tracking-tighter uppercase leading-none">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ranking da Pelada</span> ⚽<span>🍻</span>
+                    </h1>
+                    <div class="text-emerald-400/80 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Temporada 2026</div>
+                </div>
+                
+                <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10 shrink-0">
+                    <p class="text-[7px] text-slate-500 uppercase font-black">Total de Partidas:</p>
+                    <p id="total-partidas-liga" class="text-xs font-black text-emerald-400">0</p>
+                </div>
             </div>
             
-            <div class="glass px-4 py-2 rounded-xl border-emerald-500/20 flex flex-col items-center justify-center min-w-[100px]">
-                <p class="text-[8px] text-slate-500 uppercase font-black tracking-tighter mb-0.5">Total de Partidas</p>
-                <p id="total-partidas-liga" class="text-lg font-black text-emerald-400 leading-none">0</p>
+            <div id="info-ultima-partida" class="text-slate-500 text-[8px] uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> 
+                Última Partida: <span id="data-ultima" class="text-slate-300">--/--/----</span>
             </div>
         </div>
-        
-        <div id="info-ultima-partida" class="mb-2 text-slate-500 text-[9px] uppercase tracking-widest italic font-bold flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
-            Última Partida: <span id="data-ultima" class="text-slate-300">--/--/----</span>
-        </div>
-    </div>
 
-    <nav class="flex justify-around max-w-6xl mx-auto border-t border-white/5">
-        <button onclick="trocarAba('ranking')" id="btn-ranking" class="tab-btn active flex-1 py-4 text-[10px] font-black uppercase tracking-widest">Ranking</button>
-        <button onclick="trocarAba('partidas')" id="btn-partidas" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Partidas</button>
-        <button onclick="trocarAba('simulador')" id="btn-simulador" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Simulador</button>
-    </nav>
-</header>
+        <nav class="flex justify-around max-w-6xl mx-auto border-t border-white/5 bg-black/20">
+            <button onclick="trocarAba('ranking')" id="btn-ranking" class="tab-btn active flex-1 py-3 text-[10px] font-black uppercase tracking-widest">Ranking</button>
+            <button onclick="trocarAba('partidas')" id="btn-partidas" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Partidas</button>
+            <button onclick="trocarAba('simulador')" id="btn-simulador" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Simulador</button>
+        </nav>
+    </header>
 
-<main class="mt-44 max-w-6xl mx-auto px-2">
-    </main>
-        
+    <main class="max-w-6xl mx-auto px-2">
         <section id="aba-ranking">
             <div class="glass rounded-xl overflow-hidden shadow-2xl">
                 <table class="w-full text-left border-collapse table-compact">
@@ -143,7 +149,14 @@
                 const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
                 todasAsPartidas = [];
                 pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
-                document.getElementById('total-partidas-liga').textContent = `${todasAsPartidas.length} Jogos`;
+                
+                // ATUALIZAÇÃO DO HEADER
+                document.getElementById('total-partidas-liga').textContent = todasAsPartidas.length;
+                if(todasAsPartidas.length > 0) {
+                    const ultima = todasAsPartidas[0];
+                    const dataFormatada = ultima.data.split('-').reverse().join('/');
+                    document.getElementById('data-ultima').textContent = dataFormatada;
+                }
 
                 const jSnap = await getDocs(collection(db, "jogadores"));
                 dadosJogadores = [];
@@ -195,7 +208,6 @@
                 const formatSaldo = j.saldo > 0 ? `+${j.saldo}` : j.saldo;
                 const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
                 
-                // Lógica de setinhas para o simulador
                 let seta = '';
                 if(comparativo) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
@@ -253,7 +265,6 @@
             }).join('');
         }
 
-        // LOGICA SIMULADOR
         window.addSim = (time, select) => {
             const id = select.value; if(!id) return;
             if(time === 'branco') simBranco.push(id); else simPreto.push(id);
@@ -286,13 +297,10 @@
                 j.aprov = Math.round((j.v / j.totalJ) * 100);
             });
             document.getElementById('container-resultado-sim').classList.remove('hidden');
-            
-            // Pega a lista original ordenada para comparar posições
             const originalOrdenada = [...dadosJogadores].filter(j => j.visivel !== false).sort((a,b) => {
                 const c = ordenacaoAtual.campo;
                 return (a[c] - b[c]) * -1 || a.nome.localeCompare(b.nome);
             });
-
             renderizarRanking(copia, 'tabela-simulada-body', originalOrdenada);
         };
 
