@@ -8,57 +8,73 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* Estética Noir: Fundo profundo e tipografia clara */
         body { 
-            background: radial-gradient(circle at top left, #1a1c2c, #0a0b10); 
-            color: #f8fafc; 
+            background: #050505; 
+            color: #f1f5f9; 
             font-family: 'Inter', sans-serif; 
             min-height: 100vh;
-            padding-top: 140px; /* Empurra o conteúdo para baixo das abas fixas */
+            padding-top: 140px; 
         }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .tab-btn { position: relative; transition: 0.3s; }
-        .tab-btn.active { color: #10b981; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #10b981; border-radius: 2px; }
+        
+        /* Vidro mais sutil e escuro */
+        .glass { 
+            background: rgba(255, 255, 255, 0.02); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        /* Tabs Minimalistas: Branco para ativo, Cinza para inativo */
+        .tab-btn { position: relative; transition: 0.3s; color: #475569; }
+        .tab-btn.active { color: #ffffff; font-weight: 900; }
+        .tab-btn.active::after { 
+            content: ''; position: absolute; bottom: 0; left: 20%; width: 60%; height: 2px; 
+            background: #ffffff; border-radius: 2px; box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
         .hidden { display: none; }
-        .pos-badge { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: 0 auto; border-radius: 50%; font-size: 11px; font-weight: 900; }
-        .pos-1 { border: 1.5px solid #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+
+        /* Medalhas do Ranking */
+        .pos-badge { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: 0 auto; border-radius: 50%; font-size: 10px; font-weight: 900; }
+        .pos-1 { border: 1.5px solid #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); box-shadow: 0 0 12px rgba(251, 191, 36, 0.15); }
         .pos-2 { border: 1.5px solid #94a3b8; color: #f1f5f9; background: rgba(148, 163, 184, 0.1); }
         .pos-3 { border: 1.5px solid #92400e; color: #f97316; background: rgba(146, 64, 14, 0.1); }
+
         @media (max-width: 640px) {
             body { padding-top: 130px; }
-            .table-compact th, .table-compact td { padding: 0.4rem 0.15rem !important; font-size: 0.65rem !important; }
+            .table-compact th, .table-compact td { padding: 0.5rem 0.2rem !important; font-size: 0.7rem !important; }
             .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .titulo-main { font-size: 1.1rem !important; }
+            .titulo-main { font-size: 1.15rem !important; }
         }
     </style>
 </head>
 <body class="pb-10">
-    <header class="fixed top-0 left-0 w-full glass z-50 border-b border-white/10">
+    <header class="fixed top-0 left-0 w-full glass z-50 border-b border-white/5">
         <div class="p-3 md:p-4 max-w-6xl mx-auto">
             <div class="flex justify-between items-center mb-2">
                 <div class="flex flex-col">
                     <h1 class="titulo-main text-lg md:text-2xl font-black tracking-tighter uppercase leading-none">
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ranking da Pelada</span> ⚽<span>🍻</span>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500 text-white">Ranking da Pelada</span> ⚽<span>🍻</span>
                     </h1>
-                    <div class="text-emerald-400/80 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Temporada 2026</div>
+                    <div class="text-slate-500 text-[8px] font-black uppercase tracking-[0.3em] mt-1">Temporada 2026</div>
                 </div>
                 
                 <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10 shrink-0">
-                    <p class="text-[7px] text-slate-500 uppercase font-black">Total de Partidas:</p>
-                    <p id="total-partidas-liga" class="text-xs font-black text-emerald-400">0</p>
+                    <p class="text-[7px] text-slate-500 uppercase font-black italic">Partidas:</p>
+                    <p id="total-partidas-liga" class="text-xs font-black text-white">0</p>
                 </div>
             </div>
             
-            <div id="info-ultima-partida" class="text-slate-500 text-[8px] uppercase tracking-widest font-bold flex items-center gap-1.5">
-                <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> 
-                Última Partida: <span id="data-ultima" class="text-slate-300">--/--/----</span>
+            <div id="info-ultima-partida" class="text-slate-600 text-[8px] uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <span class="w-1 h-1 rounded-full bg-white/20"></span> 
+                Última Partida: <span id="data-ultima" class="text-slate-400 font-black">--/--/----</span>
             </div>
         </div>
 
-        <nav class="flex justify-around max-w-6xl mx-auto border-t border-white/5 bg-black/20">
+        <nav class="flex justify-around max-w-6xl mx-auto border-t border-white/5 bg-black/40">
             <button onclick="trocarAba('ranking')" id="btn-ranking" class="tab-btn active flex-1 py-3 text-[10px] font-black uppercase tracking-widest">Ranking</button>
-            <button onclick="trocarAba('partidas')" id="btn-partidas" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Partidas</button>
-            <button onclick="trocarAba('simulador')" id="btn-simulador" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Simulador</button>
+            <button onclick="trocarAba('partidas')" id="btn-partidas" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest">Partidas</button>
+            <button onclick="trocarAba('simulador')" id="btn-simulador" class="tab-btn flex-1 py-3 text-[10px] font-black uppercase tracking-widest">Simulador</button>
         </nav>
     </header>
 
@@ -67,7 +83,7 @@
             <div class="glass rounded-xl overflow-hidden shadow-2xl">
                 <table class="w-full text-left border-collapse table-compact">
                     <thead>
-                        <tr class="text-slate-500 text-[8px] uppercase tracking-tighter border-b border-white/5 bg-white/5">
+                        <tr class="text-slate-500 text-[8px] uppercase tracking-wider border-b border-white/5 bg-white/[0.02]">
                             <th class="py-3 px-2 w-8 text-center">#</th>
                             <th class="py-3 pl-2">Jogador</th>
                             <th class="text-center w-8" onclick="ordenar('saldo')">S</th>
@@ -78,7 +94,7 @@
                             <th class="py-3 pr-4 text-right w-20">Forma</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-body" class="divide-y divide-white/5 text-[10px] md:text-sm"></tbody>
+                    <tbody id="tabela-body" class="divide-y divide-white/[0.03] text-[10px] md:text-sm"></tbody>
                 </table>
             </div>
         </section>
@@ -88,34 +104,34 @@
         </section>
 
         <section id="aba-simulador" class="hidden">
-            <div class="glass p-4 rounded-xl border-yellow-500/20 space-y-4 mb-6">
-                <h3 class="text-[10px] font-black uppercase text-yellow-500 flex items-center gap-2"><i data-lucide="flask-conical" class="w-3 h-3"></i> Testar Resultado</h3>
+            <div class="glass p-4 rounded-xl border-white/10 space-y-4 mb-6">
+                <h3 class="text-[10px] font-black uppercase text-white flex items-center gap-2"><i data-lucide="flask-conical" class="w-3 h-3"></i> Testar Resultado</h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block">Vencedor (Branco)</label>
+                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block">Time Branco ⚪</label>
                         <div id="sim-branco-tags" class="flex flex-wrap gap-1 mb-2"></div>
-                        <select onchange="addSim('branco', this)" class="w-full bg-black/20 border border-white/10 rounded-lg p-2 text-[10px] outline-none">
-                            <option value="">+ Adicionar</option>
+                        <select onchange="addSim('branco', this)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none">
+                            <option value="">+ Selecionar</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block">Derrotado (Preto)</label>
+                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block">Time Preto ⚫</label>
                         <div id="sim-preto-tags" class="flex flex-wrap gap-1 mb-2"></div>
-                        <select onchange="addSim('preto', this)" class="w-full bg-black/20 border border-white/10 rounded-lg p-2 text-[10px] outline-none">
-                            <option value="">+ Adicionar</option>
+                        <select onchange="addSim('preto', this)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white outline-none">
+                            <option value="">+ Selecionar</option>
                         </select>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="executarSimulacao()" class="flex-1 bg-yellow-600 text-black font-black text-[10px] py-3 rounded-lg uppercase tracking-tighter">Simular Tabela</button>
-                    <button onclick="resetarSimulacao()" class="px-4 bg-slate-800 text-slate-400 font-black text-[10px] rounded-lg uppercase">Reset</button>
+                    <button onclick="executarSimulacao()" class="flex-1 bg-white text-black font-black text-[10px] py-3 rounded-lg uppercase tracking-widest hover:bg-slate-200 transition-colors">Simular Tabela</button>
+                    <button onclick="resetarSimulacao()" class="px-4 bg-white/5 text-slate-400 font-black text-[10px] rounded-lg uppercase border border-white/10">Reset</button>
                 </div>
             </div>
             <div id="container-resultado-sim" class="hidden">
-                <h4 class="text-[8px] font-black uppercase text-slate-500 ml-1 mb-2">Tabela Projetada</h4>
-                <div class="glass rounded-xl overflow-hidden border border-yellow-500/30">
+                <h4 class="text-[8px] font-black uppercase text-slate-500 ml-1 mb-2 tracking-widest italic">Projeção de Tabela</h4>
+                <div class="glass rounded-xl overflow-hidden border border-white/20">
                     <table class="w-full text-[10px] table-compact">
-                        <tbody id="tabela-simulada-body" class="divide-y divide-white/5"></tbody>
+                        <tbody id="tabela-simulada-body" class="divide-y divide-white/[0.05]"></tbody>
                     </table>
                 </div>
             </div>
@@ -150,7 +166,6 @@
                 todasAsPartidas = [];
                 pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
                 
-                // ATUALIZAÇÃO DO HEADER
                 document.getElementById('total-partidas-liga').textContent = todasAsPartidas.length;
                 if(todasAsPartidas.length > 0) {
                     const ultima = todasAsPartidas[0];
@@ -206,38 +221,39 @@
             filtrados.forEach((j, i) => {
                 const pos = i + 1;
                 const formatSaldo = j.saldo > 0 ? `+${j.saldo}` : j.saldo;
-                const corSaldo = j.saldo > 0 ? "text-emerald-400" : (j.saldo < 0 ? "text-red-400" : "text-slate-500");
+                const corSaldo = j.saldo > 0 ? "text-white font-black" : (j.saldo < 0 ? "text-red-500/80 font-bold" : "text-slate-600");
                 
                 let seta = '';
                 if(comparativo) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
-                    if(pos < posAntiga) seta = `<span class="text-emerald-500 ml-1 text-[8px]">↑</span>`;
-                    else if(pos > posAntiga) seta = `<span class="text-red-500 ml-1 text-[8px]">↓</span>`;
+                    if(pos < posAntiga) seta = `<span class="text-white ml-1 text-[8px] font-black">↑</span>`;
+                    else if(pos > posAntiga) seta = `<span class="text-red-900 ml-1 text-[8px]">↓</span>`;
                 }
 
                 let bolinhas = "";
                 for(let k = 0; k < 5; k++) {
                     const res = j.hist[k];
-                    const cor = res === 'v' ? 'bg-emerald-500' : (res === 'd' ? 'bg-red-600' : (res === 'a' ? 'bg-slate-500' : 'bg-white/5'));
+                    // Branco para vitória, borda vazia para derrota, cinza para amistoso
+                    const cor = res === 'v' ? 'bg-white shadow-[0_0_5px_rgba(255,255,255,0.3)]' : (res === 'd' ? 'border border-white/20 bg-white/5' : (res === 'a' ? 'bg-slate-700' : 'bg-white/5'));
                     bolinhas += `<span class="w-1.5 h-1.5 rounded-full ${cor}"></span>`;
                 }
 
                 tbody.innerHTML += `
-                    <tr class="border-b border-white/[0.02]">
+                    <tr class="border-b border-white/[0.01] hover:bg-white/[0.02] transition-colors">
                         <td class="py-3 text-center font-black">
-                            ${pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`}
+                            ${pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="text-slate-600 text-[9px]">${pos}</span>`}
                         </td>
                         <td class="py-3 pl-2">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-bold uppercase player-name text-slate-200">${j.nome}</span>
+                                <span class="font-bold uppercase player-name text-slate-300 tracking-tight">${j.nome}</span>
                                 ${seta}
                             </div>
                         </td>
-                        <td class="text-center font-mono font-bold ${corSaldo}">${formatSaldo}</td>
-                        <td class="text-center font-mono text-slate-300">${j.v}</td>
-                        <td class="text-center font-mono text-slate-300">${j.d}</td>
-                        <td class="text-center font-mono text-slate-300">${j.totalJ}</td>
-                        <td class="text-center font-mono text-slate-400">${j.aprov}%</td>
+                        <td class="text-center font-mono text-[11px] ${corSaldo}">${formatSaldo}</td>
+                        <td class="text-center font-mono text-slate-400 text-[10px]">${j.v}</td>
+                        <td class="text-center font-mono text-slate-400 text-[10px]">${j.d}</td>
+                        <td class="text-center font-mono text-slate-400 text-[10px]">${j.totalJ}</td>
+                        <td class="text-center font-mono text-slate-500 text-[9px] font-bold">${j.aprov}%</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             });
@@ -248,18 +264,33 @@
             container.innerHTML = todasAsPartidas.map(p => {
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
+                const venceuBranco = p.vencedor === 'branco';
+                
                 return `
-                    <div class="glass p-3 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-center mb-2 text-[8px] font-black uppercase text-slate-500 border-b border-white/5 pb-1.5">
-                            <span>${p.data.split('-').reverse().join('/')}</span>
-                            <span class="text-emerald-500/50 italic">${p.modo}</span>
+                    <div class="glass overflow-hidden rounded-xl border border-white/5 shadow-lg">
+                        <div class="bg-white/[0.03] px-3 py-2 flex justify-between items-center border-b border-white/5">
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${p.data.split('-').reverse().join('/')}</span>
+                            <span class="text-[8px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-slate-600 uppercase italic">${p.modo}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 text-[9px]">
-                            <div><p class="text-[7px] text-slate-500 uppercase mb-0.5">Branco</p><p class="text-slate-300 leading-tight">${nomesB.join(', ')}</p></div>
-                            <div class="border-l border-white/5 pl-2.5"><p class="text-[7px] text-slate-500 uppercase mb-0.5">Preto</p><p class="text-slate-300 leading-tight">${nomesP.join(', ')}</p></div>
+                        <div class="p-4 grid grid-cols-2 gap-4 relative">
+                            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-black text-white/5 italic">VS</div>
+                            <div class="${venceuBranco ? 'opacity-100' : 'opacity-40'}">
+                                <div class="flex items-center gap-1.5 mb-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                    <span class="text-[9px] font-black uppercase tracking-tighter text-white">Branco</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 leading-tight space-y-1">${nomesB.join('<br>')}</p>
+                            </div>
+                            <div class="border-l border-white/5 pl-4 ${!venceuBranco ? 'opacity-100' : 'opacity-40'}">
+                                <div class="flex items-center gap-1.5 mb-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-white/20"></div>
+                                    <span class="text-[9px] font-black uppercase tracking-tighter text-slate-200">Preto</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 leading-tight space-y-1">${nomesP.join('<br>')}</p>
+                            </div>
                         </div>
-                        <div class="mt-2 pt-1.5 border-t border-white/5 text-[8px] font-black uppercase ${p.vencedor === 'branco' ? 'text-emerald-400' : 'text-cyan-400'}">
-                            Vencedor: ${p.vencedor}
+                        <div class="px-3 py-2 ${venceuBranco ? 'bg-white text-black' : 'bg-slate-900 text-white'} text-center">
+                            <span class="text-[8px] font-black uppercase tracking-[0.3em]">Vencedor: ${p.vencedor}</span>
                         </div>
                     </div>`;
             }).join('');
@@ -274,9 +305,9 @@
         function renderTags() {
             const fn = (t, elId) => {
                 document.getElementById(elId).innerHTML = (t === 'branco' ? simBranco : simPreto).map(id => `
-                    <span class="bg-white/10 px-2 py-1 rounded text-[8px] font-bold uppercase flex items-center gap-1">
+                    <span class="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-bold uppercase flex items-center gap-1">
                         ${dadosJogadores.find(j => j.id === id)?.nome}
-                        <button onclick="removeSim('${t}', '${id}')" class="text-red-400">×</button>
+                        <button onclick="removeSim('${t}', '${id}')" class="text-white hover:text-red-500 transition-colors">×</button>
                     </span>`).join('');
             };
             fn('branco', 'sim-branco-tags'); fn('preto', 'sim-preto-tags');
@@ -289,7 +320,7 @@
         };
 
         window.executarSimulacao = () => {
-            if(!simBranco.length || !simPreto.length) return alert("Escolha os times!");
+            if(!simBranco.length || !simPreto.length) return alert("Defina os times!");
             const copia = JSON.parse(JSON.stringify(dadosJogadores));
             copia.forEach(j => {
                 if(simBranco.includes(j.id)) { j.v++; j.saldo++; j.totalJ++; j.hist.push('v'); j.hist.shift(); }
@@ -299,7 +330,7 @@
             document.getElementById('container-resultado-sim').classList.remove('hidden');
             const originalOrdenada = [...dadosJogadores].filter(j => j.visivel !== false).sort((a,b) => {
                 const c = ordenacaoAtual.campo;
-                return (a[c] - b[c]) * -1 || a.nome.localeCompare(b.nome);
+                return (a[c] - b[c]) * -1 || (a.saldo - b.saldo) * -1 || a.nome.localeCompare(b.nome);
             });
             renderizarRanking(copia, 'tabela-simulada-body', originalOrdenada);
         };
@@ -318,12 +349,9 @@
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('aba-' + nome).classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('active', 'text-emerald-500');
-                b.classList.add('text-slate-500');
+                b.classList.remove('active');
             });
-            const btn = document.getElementById('btn-' + nome);
-            btn.classList.add('active', 'text-emerald-500');
-            btn.classList.remove('text-slate-500');
+            document.getElementById('btn-' + nome).classList.add('active');
             lucide.createIcons();
         };
 
