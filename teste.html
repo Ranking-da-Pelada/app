@@ -122,6 +122,7 @@
                 <div>
                     <label class="text-[9px] font-black text-slate-100 uppercase mb-1 block">Vencedor:</label>
                     <select id="sim-vencedor" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold outline-none cursor-pointer">
+                        <option value="">Time</option>
                         <option value="branco">Time Branco</option>
                         <option value="preto">Time Preto</option>
                     </select>
@@ -274,8 +275,8 @@
                         </div>
                         <div class="p-4 grid grid-cols-2 gap-4 relative text-center">
                             <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-white/20 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black text-white italic z-10">VS</div>
-                            <div><div class="bg-white/10 rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-white tracking-widest">Branco</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesB.join('<br>')}</p></div>
-                            <div><div class="bg-black/40 rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-slate-300 tracking-widest">Preto</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesP.join('<br>')}</p></div>
+                            <div><div class="bg-white rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-slate-900 tracking-widest">Branco</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesB.join('<br>')}</p></div>
+                            <div><div class="bg-black rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-white tracking-widest">Preto</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesP.join('<br>')}</p></div>
                         </div>
                         <div class="px-3 py-2.5 ${p.vencedor === 'branco' ? 'bg-white text-slate-900' : 'bg-black text-white'} text-center border-t border-white/10 text-[9px] font-bold uppercase tracking-[0.4em]">Vencedor: ${p.vencedor}</div>
                     </div>`;
@@ -292,6 +293,7 @@
         window.executarSimulacao = () => {
             if(!simBranco.length || !simPreto.length) return;
             const vencedor = document.getElementById('sim-vencedor').value;
+            if(!vencedor) return;
             const copia = JSON.parse(JSON.stringify(dadosJogadores));
             copia.forEach(j => {
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
@@ -306,7 +308,7 @@
             renderizarRanking(copia, 'tabela-simulada-body', [...dadosJogadores].filter(j => j.visivel !== false).sort((a,b) => b.saldo - a.saldo));
         };
 
-        window.resetarSimulacao = () => { simBranco = []; simPreto = []; renderTags(); document.getElementById('container-resultado-sim').classList.add('hidden'); };
+        window.resetarSimulacao = () => { simBranco = []; simPreto = []; document.getElementById('sim-vencedor').value = ""; renderTags(); document.getElementById('container-resultado-sim').classList.add('hidden'); };
         function popularSelects() {
             const h = dadosJogadores.filter(j => j.visivel !== false).sort((a,b) => a.nome.localeCompare(b.nome)).map(j => `<option value="${j.id}">${j.nome}</option>`).join('');
             document.querySelectorAll('#aba-simulador select:not(#sim-vencedor)').forEach(s => s.innerHTML = '<option value="">Jogador</option>' + h);
