@@ -210,8 +210,27 @@
                     });
                 });
 
+                // --- Lógica para o Comparativo Automático do Ranking ---
+                let rankingAnterior = null;
+                if(todasAsPartidas.length > 0) {
+                    const copiaParaAnterior = JSON.parse(JSON.stringify(dadosJogadores));
+                    const ultimaPartida = todasAsPartidas[0];
+                    if(ultimaPartida.modo !== 'amistoso') {
+                        copiaParaAnterior.forEach(j => {
+                            const noB = ultimaPartida.branco.includes(j.id), noP = ultimaPartida.preto.includes(j.id);
+                            if(noB || noP) {
+                                const ganhou = (noB && ultimaPartida.vencedor === 'branco') || (noP && ultimaPartida.vencedor === 'preto');
+                                ganhou ? (j.v--, j.saldo--, j.invict--) : (j.d--, j.saldo++, j.jejum--);
+                                j.totalJ = j.v + j.d;
+                                j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
+                            }
+                        });
+                    }
+                    rankingAnterior = aplicarSort(copiaParaAnterior.filter(j => j.visivel !== false));
+                }
+
                 atualizarIndicadoresVisuais();
-                renderizarRanking(dadosJogadores, 'tabela-body');
+                renderizarRanking(dadosJogadores, 'tabela-body', rankingAnterior);
                 renderizarHistorico();
                 popularSelects();
             } catch (err) { console.error(err); }
@@ -233,7 +252,22 @@
             if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
             else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
             atualizarIndicadoresVisuais();
-            renderizarRanking(dadosJogadores, 'tabela-body');
+            
+            // Recalcular o ranking anterior para manter a coerência das setas ao trocar o filtro
+            const copiaParaAnterior = JSON.parse(JSON.stringify(dadosJogadores));
+            if(todasAsPartidas.length > 0 && todasAsPartidas[0].modo !== 'amistoso') {
+                const ultima = todasAsPartidas[0];
+                copiaParaAnterior.forEach(j => {
+                    if(ultima.branco.includes(j.id) || ultima.preto.includes(j.id)) {
+                         const ganhou = (ultima.branco.includes(j.id) && ultima.vencedor === 'branco') || (ultima.preto.includes(j.id) && ultima.vencedor === 'preto');
+                         ganhou ? (j.v--, j.saldo--) : (j.d--, j.saldo++);
+                         j.totalJ = j.v + j.d;
+                         j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
+                    }
+                });
+            }
+            const rankingAnterior = aplicarSort(copiaParaAnterior.filter(j => j.visivel !== false));
+            renderizarRanking(dadosJogadores, 'tabela-body', rankingAnterior);
         };
 
         function aplicarSort(lista) {
@@ -270,6 +304,7 @@
         function renderizarRanking(lista, containerId, comparativo = null) {
             const tbody = document.getElementById(containerId);
             const filtrados = aplicarSort(lista.filter(j => j.visivel !== false));
+            const isSimulador = containerId === 'tabela-simulada-body';
 
             tbody.innerHTML = filtrados.map((j, i) => {
                 const pos = i + 1;
@@ -284,6 +319,9 @@
                         setaMov = `<span class="text-emerald-400 mr-1 text-[9px] font-black flex items-center">▲${diff}</span>`;
                     } else if(diff < 0) {
                         setaMov = `<span class="text-red-500 mr-1 text-[9px] font-black flex items-center">▼${Math.abs(diff)}</span>`;
+                    } else if(isSimulador) {
+                        // Ícone neutro APENAS no simulador quando a posição for igual
+                        setaMov = `<span class="text-slate-500 mr-1 text-[9px] font-black flex items-center">-</span>`;
                     }
                 }
 
@@ -339,9 +377,7 @@
             const vencedor = document.getElementById('sim-vencedor').value;
             if(!vencedor) return;
             
-            // Gerar ranking atual ANTES das mudanças ordenado exatamente como o principal
             const rankingAntes = aplicarSort(dadosJogadores.filter(j => j.visivel !== false));
-
             const copia = JSON.parse(JSON.stringify(dadosJogadores));
             copia.forEach(j => {
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
