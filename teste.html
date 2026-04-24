@@ -92,8 +92,7 @@
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
                             <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
-                            <th class="text-center w-12 cursor-pointer hover:text-white" onclick="ordenar('recentes')">REC</th>
-                            <th class="py-3 pr-4 text-right w-20">Recentes</th>
+                            <th class="py-3 pr-4 text-right w-20 cursor-pointer hover:text-white" onclick="ordenar('recentes')">Recentes</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-body" class="divide-y divide-white/[0.05] text-[10px] md:text-sm"></tbody>
@@ -219,11 +218,11 @@
         }
 
         function atualizarIndicadoresVisuais() {
-            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%', 'recentes': 'REC' };
+            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%', 'recentes': 'Recentes' };
             Object.keys(mapeamento).forEach(c => {
                 const th = document.querySelector(`th[onclick="ordenar('${c}')"]`);
                 if (th) {
-                    const seta = c === ordenacaoAtual.campo ? (ordenacaoAtual.crescente ? '↑' : '↓') : '';
+                    const seta = c === ordenacaoAtual.campo ? (ordenacaoAtual.crescente ? ' ↑' : ' ↓') : '';
                     th.innerText = mapeamento[c] + seta;
                     c === ordenacaoAtual.campo ? th.classList.add('th-active') : th.classList.remove('th-active');
                 }
@@ -294,7 +293,6 @@
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
                         <td class="text-center font-mono text-slate-400 text-[9px] font-bold">${Math.round(j.aprov * 100)}%</td>
-                        <td class="text-center font-mono text-slate-400 text-[9px] font-black">${j.recentes}</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             }).join('');
