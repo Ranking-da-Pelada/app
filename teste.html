@@ -38,6 +38,10 @@
         .pos-3 { border: 1.5px solid #d97706; color: #f59e0b; background: rgba(217, 119, 6, 0.1); }
         .pos-other { color: #f8fafc; font-weight: 800; font-size: 10px; }
 
+        /* Estilos para Ordenação */
+        .th-active { color: #ffffff !important; font-weight: 900; }
+        .cursor-pointer { cursor: pointer; }
+
         @media (max-width: 640px) {
             body { padding-top: 130px; }
             .table-compact th, .table-compact td { padding: 0.6rem 0.25rem !important; font-size: 0.75rem !important; }
@@ -84,11 +88,11 @@
                         <tr class="text-slate-400 text-[8px] uppercase tracking-wider border-b border-white/5 bg-black/30">
                             <th class="py-3 px-2 w-8 text-center">#</th>
                             <th class="py-3 pl-2">Jogador</th>
-                            <th class="text-center w-8" onclick="ordenar('saldo')">S</th>
-                            <th class="text-center w-6" onclick="ordenar('v')">V</th>
-                            <th class="text-center w-6" onclick="ordenar('d')">D</th>
-                            <th class="text-center w-6" onclick="ordenar('totalJ')">P</th>
-                            <th class="text-center w-10" onclick="ordenar('aprov')">%</th>
+                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('saldo')">S</th>
+                            <th class="text-center w-6 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
+                            <th class="text-center w-6 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
+                            <th class="text-center w-6 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
+                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
                             <th class="py-3 pr-4 text-right w-20">Forma</th>
                         </tr>
                     </thead>
@@ -167,7 +171,6 @@
         let simPreto = [];
         let ordenacaoAtual = { campo: 'saldo', crescente: false };
         
-        // Configuração do Swipe
         let touchstartX = 0;
         let touchendX = 0;
         const abas = ['ranking', 'partidas', 'simulador'];
@@ -207,11 +210,38 @@
                     dadosJogadores.push({ ...j, id: jId, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0, totalJ: pj, aprov: pj > 0 ? Math.round(((j.v || 0) / pj) * 100) : 0, hist: [...histForma].reverse() });
                 });
 
+                // Inicializa o visual da ordenação padrão
+                atualizarIndicadoresVisuais();
                 renderizarRanking(dadosJogadores, 'tabela-body');
                 renderizarHistorico();
                 popularSelects();
             } catch (err) { console.error(err); }
         }
+
+        function atualizarIndicadoresVisuais() {
+            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%' };
+            Object.keys(mapeamento).forEach(c => {
+                const th = document.querySelector(`th[onclick="ordenar('${c}')"]`);
+                if (th) {
+                    if (c === ordenacaoAtual.campo) {
+                        const seta = ordenacaoAtual.crescente ? ' ↑' : ' ↓';
+                        th.innerText = mapeamento[c] + seta;
+                        th.classList.add('th-active');
+                    } else {
+                        th.innerText = mapeamento[c];
+                        th.classList.remove('th-active');
+                    }
+                }
+            });
+        }
+
+        window.ordenar = (campo) => {
+            if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
+            else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
+            
+            atualizarIndicadoresVisuais();
+            renderizarRanking(dadosJogadores, 'tabela-body');
+        };
 
         function renderizarRanking(lista, containerId, comparativo = null) {
             const tbody = document.getElementById(containerId);
@@ -231,11 +261,11 @@
                 const formatSaldo = j.saldo > 0 ? `+${j.saldo}` : j.saldo;
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 
-                let seta = '';
+                let setaMov = '';
                 if(comparativo) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
-                    if(pos < posAntiga) seta = `<span class="text-emerald-400 ml-1 text-[8px] font-black">↑</span>`;
-                    else if(pos > posAntiga) seta = `<span class="text-red-500 ml-1 text-[8px] font-black">↓</span>`;
+                    if(pos < posAntiga) setaMov = `<span class="text-emerald-400 ml-1 text-[8px] font-black">↑</span>`;
+                    else if(pos > posAntiga) setaMov = `<span class="text-red-500 ml-1 text-[8px] font-black">↓</span>`;
                 }
 
                 let bolinhas = "";
@@ -253,14 +283,14 @@
                         <td class="py-3 pl-2">
                             <div class="flex items-center gap-1.5">
                                 <span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}</span>
-                                ${seta}
+                                ${setaMov}
                             </div>
                         </td>
-                        <td class="text-center font-mono text-[11px] ${corSaldo}">${formatSaldo}</td>
-                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.v}</td>
-                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
-                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
-                        <td class="text-center font-mono text-slate-400 text-[9px] font-black">${j.aprov}%</td>
+                        <td class="text-center font-mono text-[11px] ${ordenacaoAtual.campo === 'saldo' ? 'bg-white/5 ' + corSaldo : corSaldo}">${formatSaldo}</td>
+                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold ${ordenacaoAtual.campo === 'v' ? 'bg-white/5' : ''}">${j.v}</td>
+                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold ${ordenacaoAtual.campo === 'd' ? 'bg-white/5' : ''}">${j.d}</td>
+                        <td class="text-center font-mono text-slate-200 text-[10px] font-bold ${ordenacaoAtual.campo === 'totalJ' ? 'bg-white/5' : ''}">${j.totalJ}</td>
+                        <td class="text-center font-mono text-slate-400 text-[9px] font-black ${ordenacaoAtual.campo === 'aprov' ? 'bg-white/5' : ''}">${j.aprov}%</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             });
@@ -383,15 +413,7 @@
             window.scrollTo(0,0);
         };
 
-        window.ordenar = (campo) => {
-            if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
-            else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
-            renderizarRanking(dadosJogadores, 'tabela-body');
-        };
-
-        // Lógica de Deslizar (Swipe)
         const container = document.getElementById('swipe-container');
-        
         container.addEventListener('touchstart', e => {
             touchstartX = e.changedTouches[0].screenX;
         }, {passive: true});
@@ -404,11 +426,9 @@
         function handleGesture() {
             const threshold = 80;
             if (touchendX < touchstartX - threshold) {
-                // Swipe Left -> Próxima Aba
                 if(abaAtualIndex < abas.length - 1) trocarAba(abas[abaAtualIndex + 1]);
             }
             if (touchendX > touchstartX + threshold) {
-                // Swipe Right -> Aba Anterior
                 if(abaAtualIndex > 0) trocarAba(abas[abaAtualIndex - 1]);
             }
         }
