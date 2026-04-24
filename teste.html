@@ -106,31 +106,31 @@
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block italic">Time Branco</label>
+                        <label class="text-[7px] font-black text-slate-200 uppercase mb-1 block italic">Time Branco</label>
                         <div id="sim-branco-tags" class="flex flex-wrap gap-1 mb-2"></div>
                         <select onchange="addSim('branco', this)" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white">
-                            <option value="">+ Jogador</option>
+                            <option value="">Jogador</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[7px] font-black text-slate-500 uppercase mb-1 block italic">Time Preto</label>
+                        <label class="text-[7px] font-black text-slate-400 uppercase mb-1 block italic">Time Preto</label>
                         <div id="sim-preto-tags" class="flex flex-wrap gap-1 mb-2"></div>
                         <select onchange="addSim('preto', this)" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white">
-                            <option value="">+ Jogador</option>
+                            <option value="">Jogador</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                <div class="py-2">
                     <label class="text-[8px] font-black text-emerald-400 uppercase mb-2 block">Vencedor:</label>
-                    <select id="sim-vencedor" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold outline-none">
-                        <option value="branco">Time Branco</option>
-                        <option value="preto">Time Preto</option>
+                    <select id="sim-vencedor" class="w-full bg-transparent border-none text-[10px] text-white font-bold outline-none cursor-pointer">
+                        <option value="branco" class="bg-slate-900">Time Branco</option>
+                        <option value="preto" class="bg-slate-900">Time Preto</option>
                     </select>
                 </div>
 
                 <div class="flex gap-2">
-                    <button onclick="executarSimulacao()" class="flex-1 bg-emerald-600 text-white font-black text-[10px] py-3 rounded-lg uppercase tracking-widest shadow-lg">Simular Impacto</button>
+                    <button onclick="executarSimulacao()" class="flex-1 bg-emerald-600 text-white font-black text-[10px] py-3 rounded-lg uppercase tracking-widest shadow-lg">Simular</button>
                     <button onclick="resetarSimulacao()" class="px-4 bg-white/5 text-slate-400 font-black text-[10px] rounded-lg uppercase border border-white/10">Limpar</button>
                 </div>
             </div>
@@ -261,15 +261,17 @@
 
         function renderizarHistorico() {
             const container = document.getElementById('historico-lista');
-            container.innerHTML = todasAsPartidas.map(p => {
+            const total = todasAsPartidas.length;
+            container.innerHTML = todasAsPartidas.map((p, index) => {
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const venceuBranco = p.vencedor === 'branco';
+                const rodada = total - index;
                 
                 return `
                     <div class="glass overflow-hidden rounded-xl border border-white/5 shadow-2xl">
                         <div class="bg-black/30 px-3 py-2 flex justify-between items-center border-b border-white/10">
-                            <span class="text-[9px] font-black text-slate-200 uppercase tracking-widest">${p.data.split('-').reverse().join('/')}</span>
+                            <span class="text-[9px] font-black text-slate-200 uppercase tracking-widest">${p.data.split('-').reverse().join('/')} - Rodada ${rodada}</span>
                             <span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-300 uppercase italic">${p.modo}</span>
                         </div>
                         <div class="p-4 grid grid-cols-2 gap-4 relative">
@@ -296,7 +298,7 @@
                             </div>
                         </div>
                         <div class="px-3 py-2.5 ${venceuBranco ? 'bg-white text-slate-900' : 'bg-black text-white'} text-center border-t border-white/10">
-                            <span class="text-[9px] font-black uppercase tracking-[0.4em] italic">Vencedor: ${p.vencedor}</span>
+                            <span class="text-[9px] font-medium uppercase tracking-[0.4em] not-italic">Vencedor: ${p.vencedor}</span>
                         </div>
                     </div>`;
             }).join('');
@@ -358,7 +360,10 @@
 
         function popularSelects() {
             const html = dadosJogadores.filter(j => j.visivel !== false).sort((a,b) => a.nome.localeCompare(b.nome)).map(j => `<option value="${j.id}">${j.nome}</option>`).join('');
-            document.querySelectorAll('#aba-simulador select:not(#sim-vencedor)').forEach(s => s.innerHTML += html);
+            document.querySelectorAll('#aba-simulador select:not(#sim-vencedor)').forEach(s => {
+                const defaultOpt = s.querySelector('option').outerHTML;
+                s.innerHTML = defaultOpt + html;
+            });
         }
 
         window.trocarAba = (nome) => {
