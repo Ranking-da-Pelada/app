@@ -43,8 +43,8 @@
 
         @media (max-width: 640px) {
             body { padding-top: 130px; }
-            .table-compact th, .table-compact td { padding: 0.6rem 0.2rem !important; font-size: 0.75rem !important; }
-            .player-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
+            .table-compact th, .table-compact td { padding: 0.6rem 0.1rem !important; font-size: 0.7rem !important; }
+            .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
             .titulo-main { font-size: 1.15rem !important; }
         }
     </style>
@@ -87,11 +87,12 @@
                         <tr class="text-slate-400 text-[8px] uppercase tracking-wider border-b border-white/5 bg-black/30">
                             <th class="py-3 px-2 w-8 text-center">#</th>
                             <th class="py-3 pl-2">Jogador</th>
-                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('saldo')">S</th>
-                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
-                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
-                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
-                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
+                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('saldo')">S</th>
+                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
+                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
+                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
+                            <th class="text-center w-9 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
+                            <th class="text-center w-6"></th>
                             <th class="py-3 pr-4 text-right w-20 cursor-pointer hover:text-white" onclick="ordenar('recentes')">Recentes</th>
                         </tr>
                     </thead>
@@ -309,7 +310,6 @@
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 let setaMov = '';
                 
-                // ALTERAÇÃO: Só calcula seta se for ordenação por Saldo Decrescente
                 if(comparativo && (ordenacaoAtual.campo === 'saldo' && !ordenacaoAtual.crescente)) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
                     const diff = posAntiga - pos;
@@ -337,6 +337,7 @@
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
                         <td class="text-center font-mono text-slate-400 text-[9px] font-bold">${Math.round(j.aprov * 100)}%</td>
+                        <td class="text-center text-[10px]">${j.invict >= 3 ? '🔥' : ''}</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             }).join('');
@@ -381,7 +382,7 @@
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
                 if(noB || noP) {
                     const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.jejum++);
+                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0, j.jejum++);
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
                     j.totalJ = j.v + j.d;
                     j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
