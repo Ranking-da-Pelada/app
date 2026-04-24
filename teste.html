@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BETA | Ranking da Pelada 2026</title>
+    <title>Ranking da Pelada | 2026</title>
     <link rel="icon" type="image/png" href="/app/icone.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -309,7 +309,8 @@
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 let setaMov = '';
                 
-                if(comparativo) {
+                // ALTERAÇÃO: Só calcula seta se for ordenação por Saldo Decrescente
+                if(comparativo && (ordenacaoAtual.campo === 'saldo' && !ordenacaoAtual.crescente)) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
                     const diff = posAntiga - pos;
                     
