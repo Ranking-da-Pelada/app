@@ -210,7 +210,6 @@
                     });
                 });
 
-                // --- Lógica para o Comparativo Automático do Ranking ---
                 let rankingAnterior = null;
                 if(todasAsPartidas.length > 0) {
                     const copiaParaAnterior = JSON.parse(JSON.stringify(dadosJogadores));
@@ -253,7 +252,6 @@
             else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
             atualizarIndicadoresVisuais();
             
-            // Recalcular o ranking anterior para manter a coerência das setas ao trocar o filtro
             const copiaParaAnterior = JSON.parse(JSON.stringify(dadosJogadores));
             if(todasAsPartidas.length > 0 && todasAsPartidas[0].modo !== 'amistoso') {
                 const ultima = todasAsPartidas[0];
@@ -320,7 +318,6 @@
                     } else if(diff < 0) {
                         setaMov = `<span class="text-red-500 mr-1 text-[9px] font-black flex items-center">▼${Math.abs(diff)}</span>`;
                     } else if(isSimulador) {
-                        // Ícone neutro APENAS no simulador quando a posição for igual
                         setaMov = `<span class="text-slate-500 mr-1 text-[9px] font-black flex items-center">-</span>`;
                     }
                 }
@@ -350,7 +347,7 @@
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 return `
-                    <div class="glass overflow-hidden rounded-xl border border-white/5 shadow-2xl">
+                    <div class="glass overflow-hidden rounded-xl border border-white/20 shadow-2xl">
                         <div class="bg-black/30 px-3 py-2 flex justify-between items-center border-b border-white/10">
                             <span class="text-[9px] font-black text-slate-200 uppercase tracking-widest">${p.data.split('-').reverse().join('/')} - Rodada ${todasAsPartidas.length - index}</span>
                             <span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-300 uppercase italic">${p.modo}</span>
