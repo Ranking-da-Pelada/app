@@ -106,14 +106,14 @@
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[7px] font-black text-slate-200 uppercase mb-1 block italic">Time Branco</label>
+                        <label class="text-[9px] font-black text-slate-100 uppercase mb-1 block">Time Branco:</label>
                         <div id="sim-branco-tags" class="flex flex-wrap gap-1 mb-2"></div>
                         <select onchange="addSim('branco', this)" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white">
                             <option value="">Jogador</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[7px] font-black text-slate-400 uppercase mb-1 block italic">Time Preto</label>
+                        <label class="text-[9px] font-black text-slate-100 uppercase mb-1 block">Time Preto:</label>
                         <div id="sim-preto-tags" class="flex flex-wrap gap-1 mb-2"></div>
                         <select onchange="addSim('preto', this)" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white">
                             <option value="">Jogador</option>
@@ -121,9 +121,9 @@
                     </div>
                 </div>
 
-                <div class="py-2">
-                    <label class="text-[8px] font-black text-emerald-400 uppercase mb-2 block">Vencedor:</label>
-                    <select id="sim-vencedor" class="w-full bg-transparent border-none text-[10px] text-white font-bold outline-none cursor-pointer">
+                <div>
+                    <label class="text-[9px] font-black text-slate-100 uppercase mb-1 block">Vencedor:</label>
+                    <select id="sim-vencedor" class="w-full bg-slate-900 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold outline-none cursor-pointer">
                         <option value="branco" class="bg-slate-900">Time Branco</option>
                         <option value="preto" class="bg-slate-900">Time Preto</option>
                     </select>
@@ -290,7 +290,7 @@
                             <div class="text-center">
                                 <div class="bg-black/40 border border-white/5 rounded-lg p-2 mb-3">
                                     <div class="flex items-center justify-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-900 border border-white/20"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-900 border border-white/40"></span>
                                         <span class="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Preto</span>
                                     </div>
                                 </div>
@@ -298,7 +298,7 @@
                             </div>
                         </div>
                         <div class="px-3 py-2.5 ${venceuBranco ? 'bg-white text-slate-900' : 'bg-black text-white'} text-center border-t border-white/10">
-                            <span class="text-[9px] font-medium uppercase tracking-[0.4em] not-italic">Vencedor: ${p.vencedor}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-[0.4em] not-italic">Vencedor: ${p.vencedor}</span>
                         </div>
                     </div>`;
             }).join('');
