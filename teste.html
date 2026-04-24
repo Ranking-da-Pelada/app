@@ -91,6 +91,7 @@
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
+                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
                             <th class="text-center w-12 cursor-pointer hover:text-white" onclick="ordenar('recentes')">REC</th>
                             <th class="py-3 pr-4 text-right w-20">Recentes</th>
                         </tr>
@@ -201,9 +202,11 @@
                     }
                     
                     const vit5 = histForma.filter(x => x === 'v').length;
+                    const totalJ = (j.v || 0) + (j.d || 0);
                     dadosJogadores.push({ 
                         ...j, id: d.id, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0, 
-                        totalJ: (j.v || 0) + (j.d || 0), recentes: vit5, invict, jejum,
+                        totalJ: totalJ, recentes: vit5, invict, jejum,
+                        aprov: totalJ > 0 ? (j.v || 0) / totalJ : 0,
                         hist: [...histForma].reverse() 
                     });
                 });
@@ -216,7 +219,7 @@
         }
 
         function atualizarIndicadoresVisuais() {
-            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'recentes': 'REC' };
+            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%', 'recentes': 'REC' };
             Object.keys(mapeamento).forEach(c => {
                 const th = document.querySelector(`th[onclick="ordenar('${c}')"]`);
                 if (th) {
@@ -255,6 +258,9 @@
                 } else if (c === 'totalJ') {
                     crit = isCres ? [a.totalJ - b.totalJ, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
                                   : [b.totalJ - a.totalJ, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
+                } else if (c === 'aprov') {
+                    crit = isCres ? [a.aprov - b.aprov, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
+                                  : [b.aprov - a.aprov, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
                 } else if (c === 'recentes') {
                     crit = isCres ? [a.recentes - b.recentes, b.jejum - a.jejum, a.saldo - b.saldo, a.v - b.v]
                                   : [b.recentes - a.recentes, b.invict - a.invict, b.saldo - a.saldo, b.v - a.v];
@@ -287,6 +293,7 @@
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.v}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
+                        <td class="text-center font-mono text-slate-400 text-[9px] font-bold">${Math.round(j.aprov * 100)}%</td>
                         <td class="text-center font-mono text-slate-400 text-[9px] font-black">${j.recentes}</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
@@ -331,7 +338,9 @@
                 if(noB || noP) {
                     const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
                     ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.jejum++);
-                    j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; j.totalJ = j.v + j.d;
+                    j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
+                    j.totalJ = j.v + j.d;
+                    j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
                 }
             });
             document.getElementById('container-resultado-sim').classList.remove('hidden');
