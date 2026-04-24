@@ -14,6 +14,7 @@
             font-family: 'Inter', sans-serif; 
             min-height: 100vh;
             padding-top: 140px; 
+            overflow-x: hidden;
         }
         
         .glass { 
@@ -64,7 +65,7 @@
             
             <div id="info-ultima-partida" class="text-slate-300 text-[10px] uppercase tracking-widest font-black flex items-center gap-1.5 mt-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
-                Última: <span id="data-ultima" class="text-white">--/--/----</span>
+                Última Partida: <span id="data-ultima" class="text-white">--/--/----</span>
             </div>
         </div>
 
@@ -75,7 +76,7 @@
         </nav>
     </header>
 
-    <main class="max-w-6xl mx-auto px-2">
+    <main id="swipe-container" class="max-w-6xl mx-auto px-2 min-h-[60vh]">
         <section id="aba-ranking">
             <div class="glass rounded-xl overflow-hidden shadow-2xl">
                 <table class="w-full text-left border-collapse table-compact">
@@ -165,6 +166,12 @@
         let simBranco = [];
         let simPreto = [];
         let ordenacaoAtual = { campo: 'saldo', crescente: false };
+        
+        // Configuração do Swipe
+        let touchstartX = 0;
+        let touchendX = 0;
+        const abas = ['ranking', 'partidas', 'simulador'];
+        let abaAtualIndex = 0;
 
         async function carregarDados() {
             try {
@@ -371,7 +378,9 @@
             document.getElementById('aba-' + nome).classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + nome).classList.add('active');
+            abaAtualIndex = abas.indexOf(nome);
             lucide.createIcons();
+            window.scrollTo(0,0);
         };
 
         window.ordenar = (campo) => {
@@ -379,6 +388,30 @@
             else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
             renderizarRanking(dadosJogadores, 'tabela-body');
         };
+
+        // Lógica de Deslizar (Swipe)
+        const container = document.getElementById('swipe-container');
+        
+        container.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        container.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        }, {passive: true});
+
+        function handleGesture() {
+            const threshold = 80;
+            if (touchendX < touchstartX - threshold) {
+                // Swipe Left -> Próxima Aba
+                if(abaAtualIndex < abas.length - 1) trocarAba(abas[abaAtualIndex + 1]);
+            }
+            if (touchendX > touchstartX + threshold) {
+                // Swipe Right -> Aba Anterior
+                if(abaAtualIndex > 0) trocarAba(abas[abaAtualIndex - 1]);
+            }
+        }
 
         carregarDados();
         lucide.createIcons();
