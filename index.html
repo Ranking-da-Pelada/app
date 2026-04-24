@@ -309,7 +309,8 @@
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 let setaMov = '';
                 
-                if(comparativo) {
+                // ALTERAÇÃO: Só calcula seta se for ordenação por Saldo Decrescente
+                if(comparativo && (ordenacaoAtual.campo === 'saldo' && !ordenacaoAtual.crescente)) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
                     const diff = posAntiga - pos;
                     
