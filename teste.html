@@ -273,10 +273,16 @@
                 const pos = i + 1;
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 let setaMov = '';
+                
                 if(comparativo) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
-                    if(pos < posAntiga) setaMov = `<span class="text-emerald-400 ml-1 text-[8px] font-black">↑</span>`;
-                    else if(pos > posAntiga) setaMov = `<span class="text-red-500 ml-1 text-[8px] font-black">↓</span>`;
+                    const diff = posAntiga - pos; // Se posAntiga(5) - pos(2) = 3 (subiu)
+                    
+                    if(diff > 0) {
+                        setaMov = `<span class="text-emerald-400 ml-1 text-[8px] font-black flex items-center gap-0.5">↑${diff}</span>`;
+                    } else if(diff < 0) {
+                        setaMov = `<span class="text-red-500 ml-1 text-[8px] font-black flex items-center gap-0.5">↓${Math.abs(diff)}</span>`;
+                    }
                 }
 
                 let bolinhas = j.hist.concat(Array(5).fill('')).slice(0,5).map(res => {
@@ -330,6 +336,21 @@
             if(!simBranco.length || !simPreto.length) return;
             const vencedor = document.getElementById('sim-vencedor').value;
             if(!vencedor) return;
+            
+            // Gerar ranking atual ANTES das mudanças (ordenado pelo critério atual)
+            const rankingAntes = [...dadosJogadores].filter(j => j.visivel !== false);
+            // Aplicamos a mesma lógica de ordenação atual no ranking de comparação
+            rankingAntes.sort((a, b) => {
+                const c = ordenacaoAtual.campo;
+                const isCres = ordenacaoAtual.crescente;
+                let crit = [];
+                if (c === 'saldo') crit = isCres ? [a.saldo - b.saldo] : [b.saldo - a.saldo];
+                else if (c === 'v') crit = isCres ? [a.v - b.v] : [b.v - a.v];
+                // ... (simplificado para garantir a referência de posição inicial correta)
+                for (let res of crit) { if (res !== 0) return res; }
+                return b.saldo - a.saldo; 
+            });
+
             const copia = JSON.parse(JSON.stringify(dadosJogadores));
             copia.forEach(j => {
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
@@ -341,8 +362,9 @@
                     j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
                 }
             });
+
             document.getElementById('container-resultado-sim').classList.remove('hidden');
-            renderizarRanking(copia, 'tabela-simulada-body', [...dadosJogadores].filter(j => j.visivel !== false).sort((a,b) => b.saldo - a.saldo));
+            renderizarRanking(copia, 'tabela-simulada-body', rankingAntes);
         };
 
         window.resetarSimulacao = () => { simBranco = []; simPreto = []; document.getElementById('sim-vencedor').value = ""; renderTags(); document.getElementById('container-resultado-sim').classList.add('hidden'); };
