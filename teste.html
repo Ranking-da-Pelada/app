@@ -91,8 +91,8 @@
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
                             <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
-                            <th class="text-center w-12 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
-                            <th class="py-3 pr-4 text-right w-20">Forma</th>
+                            <th class="text-center w-12 cursor-pointer hover:text-white" onclick="ordenar('recentes')">REC</th>
+                            <th class="py-3 pr-4 text-right w-20">Recentes</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-body" class="divide-y divide-white/[0.05] text-[10px] md:text-sm"></tbody>
@@ -181,18 +181,31 @@
                 jSnap.forEach(d => {
                     const j = d.data();
                     let histForma = [];
-                    let pj = 0;
+                    let invict = 0, jejum = 0, countingInvict = true, countingJejum = true;
+                    
                     for (let p of todasAsPartidas) {
                         const noBranco = p.branco.includes(d.id), noPreto = p.preto.includes(d.id);
                         if (noBranco || noPreto) {
-                            pj++;
+                            const ganhou = ((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto'));
+                            const amistoso = p.modo === 'amistoso';
+
                             if (histForma.length < 5) {
-                                if (p.modo === 'amistoso') histForma.push('a');
-                                else histForma.push(((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto')) ? 'v' : 'd');
+                                histForma.push(amistoso ? 'a' : (ganhou ? 'v' : 'd'));
+                            }
+
+                            if(!amistoso) {
+                                if(ganhou) { countingJejum = false; if(countingInvict) invict++; }
+                                else { countingInvict = false; if(countingJejum) jejum++; }
                             }
                         }
                     }
-                    dadosJogadores.push({ ...j, id: d.id, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0, totalJ: pj, aprov: pj > 0 ? Math.round(((j.v || 0) / pj) * 100) : 0, hist: [...histForma].reverse() });
+                    
+                    const vit5 = histForma.filter(x => x === 'v').length;
+                    dadosJogadores.push({ 
+                        ...j, id: d.id, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0, 
+                        totalJ: (j.v || 0) + (j.d || 0), recentes: vit5, invict, jejum,
+                        hist: [...histForma].reverse() 
+                    });
                 });
 
                 atualizarIndicadoresVisuais();
@@ -203,7 +216,7 @@
         }
 
         function atualizarIndicadoresVisuais() {
-            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%' };
+            const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'recentes': 'REC' };
             Object.keys(mapeamento).forEach(c => {
                 const th = document.querySelector(`th[onclick="ordenar('${c}')"]`);
                 if (th) {
@@ -224,13 +237,31 @@
         function renderizarRanking(lista, containerId, comparativo = null) {
             const tbody = document.getElementById(containerId);
             const filtrados = lista.filter(j => j.visivel !== false);
-            const mult = ordenacaoAtual.crescente ? 1 : -1;
+            const isCres = ordenacaoAtual.crescente;
 
             filtrados.sort((a, b) => {
                 const c = ordenacaoAtual.campo;
-                let res = (a[c] - b[c]);
-                if (res === 0) res = (a.saldo - b.saldo);
-                return res * mult || a.nome.localeCompare(b.nome);
+                let crit = [];
+
+                if (c === 'saldo') {
+                    crit = isCres ? [a.saldo - b.saldo, a.v - b.v, a.recentes - b.recentes, b.jejum - a.jejum] 
+                                  : [b.saldo - a.saldo, b.v - a.v, b.recentes - a.recentes, b.invict - a.invict];
+                } else if (c === 'v') {
+                    crit = isCres ? [a.v - b.v, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
+                                  : [b.v - a.v, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
+                } else if (c === 'd') {
+                    crit = isCres ? [a.d - b.d, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict]
+                                  : [b.d - a.d, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum];
+                } else if (c === 'totalJ') {
+                    crit = isCres ? [a.totalJ - b.totalJ, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
+                                  : [b.totalJ - a.totalJ, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
+                } else if (c === 'recentes') {
+                    crit = isCres ? [a.recentes - b.recentes, b.jejum - a.jejum, a.saldo - b.saldo, a.v - b.v]
+                                  : [b.recentes - a.recentes, b.invict - a.invict, b.saldo - a.saldo, b.v - a.v];
+                }
+
+                for (let res of crit) { if (res !== 0) return res; }
+                return isCres ? b.nome.localeCompare(a.nome) : a.nome.localeCompare(b.nome);
             });
 
             tbody.innerHTML = filtrados.map((j, i) => {
@@ -256,7 +287,7 @@
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.v}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
-                        <td class="text-center font-mono text-slate-400 text-[9px] font-black">${j.aprov}%</td>
+                        <td class="text-center font-mono text-slate-400 text-[9px] font-black">${j.recentes}</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             }).join('');
@@ -298,10 +329,9 @@
             copia.forEach(j => {
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
                 if(noB || noP) {
-                    j.totalJ++;
                     const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                    ganhou ? (j.v++, j.saldo++, j.hist.push('v')) : (j.d++, j.saldo--, j.hist.push('d'));
-                    j.hist.shift(); j.aprov = Math.round((j.v / j.totalJ) * 100);
+                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.jejum++);
+                    j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; j.totalJ = j.v + j.d;
                 }
             });
             document.getElementById('container-resultado-sim').classList.remove('hidden');
