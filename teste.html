@@ -41,10 +41,22 @@
         .th-active { color: #ffffff !important; font-weight: 900; }
         .cursor-pointer { cursor: pointer; white-space: nowrap; }
 
+        .patch-campeao {
+            background: linear-gradient(45deg, #fbbf24, #d97706);
+            color: #000;
+            font-size: 7px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-weight: 900;
+            margin-left: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+
         @media (max-width: 640px) {
             body { padding-top: 130px; }
-            .table-compact th, .table-compact td { padding: 0.6rem 0.1rem !important; font-size: 0.7rem !important; }
-            .player-name { max-width: 85px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
+            .table-compact th, .table-compact td { padding: 0.6rem 0.2rem !important; font-size: 0.75rem !important; }
+            .player-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
             .titulo-main { font-size: 1.15rem !important; }
         }
     </style>
@@ -87,12 +99,11 @@
                         <tr class="text-slate-400 text-[8px] uppercase tracking-wider border-b border-white/5 bg-black/30">
                             <th class="py-3 px-2 w-8 text-center">#</th>
                             <th class="py-3 pl-2">Jogador</th>
-                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('saldo')">S</th>
-                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
-                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
-                            <th class="text-center w-7 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
-                            <th class="text-center w-9 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
-                            <th class="text-center w-6"></th>
+                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('saldo')">S</th>
+                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('v')">V</th>
+                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('d')">D</th>
+                            <th class="text-center w-8 cursor-pointer hover:text-white" onclick="ordenar('totalJ')">P</th>
+                            <th class="text-center w-10 cursor-pointer hover:text-white" onclick="ordenar('aprov')">%</th>
                             <th class="py-3 pr-4 text-right w-20 cursor-pointer hover:text-white" onclick="ordenar('recentes')">Recentes</th>
                         </tr>
                     </thead>
@@ -328,16 +339,19 @@
                     return `<span class="w-1.5 h-1.5 rounded-full ${cor}"></span>`;
                 }).join('');
 
+                // Novas lógicas solicitadas
+                const emojiFogo = j.invict >= 3 ? ' 🔥' : '';
+                const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao">Campeão 2025</span>' : '';
+
                 return `
                     <tr class="border-b border-white/[0.02] hover:bg-white/[0.03]">
                         <td class="py-3 text-center">${pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`}</td>
-                        <td class="py-3 pl-2"><div class="flex items-center">${setaMov}<span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}</span></div></td>
+                        <td class="py-3 pl-2"><div class="flex items-center">${setaMov}<span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}${emojiFogo}</span>${patchCampeao}</div></td>
                         <td class="text-center font-mono text-[11px] ${corSaldo}">${j.saldo > 0 ? '+'+j.saldo : j.saldo}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.v}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.totalJ}</td>
                         <td class="text-center font-mono text-slate-400 text-[9px] font-bold">${Math.round(j.aprov * 100)}%</td>
-                        <td class="text-center text-[10px]">${j.invict >= 3 ? '🔥' : ''}</td>
                         <td class="py-3 pr-4 text-right"><div class="flex justify-end gap-0.5">${bolinhas}</div></td>
                     </tr>`;
             }).join('');
@@ -382,7 +396,7 @@
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
                 if(noB || noP) {
                     const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0, j.jejum++);
+                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0);
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
                     j.totalJ = j.v + j.d;
                     j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
