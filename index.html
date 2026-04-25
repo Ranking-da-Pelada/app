@@ -41,10 +41,30 @@
         .th-active { color: #ffffff !important; font-weight: 900; }
         .cursor-pointer { cursor: pointer; white-space: nowrap; }
 
+        /* MEDALHA REFINADA DE DOIS ANDARES */
+        .patch-campeao {
+            border: 1px solid #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            font-size: 5.5px; /* Reduzido para caber os dois andares */
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-weight: 900;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            flex-direction: column; /* Estilo de dois andares */
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            line-height: 1.1;
+        }
+
         @media (max-width: 640px) {
             body { padding-top: 130px; }
             .table-compact th, .table-compact td { padding: 0.6rem 0.2rem !important; font-size: 0.75rem !important; }
-            .player-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
+            .player-name { max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
             .titulo-main { font-size: 1.15rem !important; }
         }
     </style>
@@ -282,7 +302,7 @@
                                   : [b.v - a.v, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
                 } else if (c === 'd') {
                     crit = isCres ? [a.d - b.d, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict]
-                                  : [b.d - a.d, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum];
+                                  : [b.d - a.d, a.saldo - b.saldo, a.recentes - a.recentes, b.jejum - a.jejum];
                 } else if (c === 'totalJ') {
                     crit = isCres ? [a.totalJ - b.totalJ, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
                                   : [b.totalJ - a.totalJ, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
@@ -309,7 +329,6 @@
                 const corSaldo = j.saldo > 0 ? "text-emerald-400 font-black" : (j.saldo < 0 ? "text-red-500 font-black" : "text-slate-400");
                 let setaMov = '';
                 
-                // ALTERAÇÃO: Só calcula seta se for ordenação por Saldo Decrescente
                 if(comparativo && (ordenacaoAtual.campo === 'saldo' && !ordenacaoAtual.crescente)) {
                     const posAntiga = comparativo.findIndex(x => x.id === j.id) + 1;
                     const diff = posAntiga - pos;
@@ -328,10 +347,20 @@
                     return `<span class="w-1.5 h-1.5 rounded-full ${cor}"></span>`;
                 }).join('');
 
+                const emojiFogo = j.invict >= 3 ? ' 🔥' : '';
+                /* PATCH ATUALIZADO PARA DOIS ANDARES */
+                const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao"><span>Campeão</span><span>2025</span></span>' : '';
+
                 return `
                     <tr class="border-b border-white/[0.02] hover:bg-white/[0.03]">
                         <td class="py-3 text-center">${pos <= 3 ? `<span class="pos-badge pos-${pos}">${pos}</span>` : `<span class="pos-other">${pos}</span>`}</td>
-                        <td class="py-3 pl-2"><div class="flex items-center">${setaMov}<span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}</span></div></td>
+                        <td class="py-3 pl-2">
+                            <div class="flex items-center">
+                                ${setaMov}
+                                <span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}${emojiFogo}</span>
+                                ${patchCampeao}
+                            </div>
+                        </td>
                         <td class="text-center font-mono text-[11px] ${corSaldo}">${j.saldo > 0 ? '+'+j.saldo : j.saldo}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.v}</td>
                         <td class="text-center font-mono text-slate-200 text-[10px] font-bold">${j.d}</td>
@@ -381,7 +410,7 @@
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
                 if(noB || noP) {
                     const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.jejum++);
+                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0);
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
                     j.totalJ = j.v + j.d;
                     j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
