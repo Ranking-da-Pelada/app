@@ -41,21 +41,24 @@
         .th-active { color: #ffffff !important; font-weight: 900; }
         .cursor-pointer { cursor: pointer; white-space: nowrap; }
 
-        /* MEDALHA REFINADA */
+        /* MEDALHA REFINADA DE DOIS ANDARES */
         .patch-campeao {
             border: 1px solid #fbbf24;
             background: rgba(251, 191, 36, 0.1);
             color: #fbbf24;
-            font-size: 6.5px;
-            padding: 0.5px 4px;
+            font-size: 5.5px; /* Reduzido para caber os dois andares */
+            padding: 1px 3px;
             border-radius: 3px;
             font-weight: 900;
             margin-left: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             display: inline-flex;
+            flex-direction: column; /* Estilo de dois andares */
             align-items: center;
+            justify-content: center;
             vertical-align: middle;
+            line-height: 1.1;
         }
 
         @media (max-width: 640px) {
@@ -345,7 +348,8 @@
                 }).join('');
 
                 const emojiFogo = j.invict >= 3 ? ' 🔥' : '';
-                const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao">2025</span>' : '';
+                /* PATCH ATUALIZADO PARA DOIS ANDARES */
+                const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao"><span>Campeão</span><span>2025</span></span>' : '';
 
                 return `
                     <tr class="border-b border-white/[0.02] hover:bg-white/[0.03]">
