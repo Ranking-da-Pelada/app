@@ -187,7 +187,7 @@
 
         async function carregarDados() {
             try {
-                const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("timestamp", "desc")));
+                const pSnap = await getDocs(query(collection(db, "partidas"), orderBy("data", "desc")));
                 todasAsPartidas = [];
                 pSnap.forEach(d => todasAsPartidas.push({id: d.id, ...d.data()}));
                 
@@ -201,6 +201,7 @@
                 dadosJogadores = [];
                 jSnap.forEach(d => {
                     const j = d.data();
+                    let fontForma = [];
                     let histForma = [];
                     let invict = 0, jejum = 0, countingInvict = true, countingJejum = true;
                     
@@ -319,7 +320,7 @@
                     crit = isCres ? [a.v - b.v, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
                                   : [b.v - a.v, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict];
                 } else if (c === 'd') {
-                    crit = isCres ? [a.d - b.d, b.saldo - a.saldo, b.recentes - a.recentes, b.invict - a.invict]
+                    crit = isCres ? [a.d - b.d, b.saldo - a.saldo, a.recentes - b.recentes, b.invict - a.invict]
                                   : [b.d - a.d, a.saldo - b.saldo, a.recentes - a.recentes, b.jejum - a.jejum];
                 } else if (c === 'totalJ') {
                     crit = isCres ? [a.totalJ - b.totalJ, a.saldo - b.saldo, a.recentes - b.recentes, b.jejum - a.jejum]
