@@ -46,7 +46,7 @@
             border: 1px solid #fbbf24;
             background: rgba(251, 191, 36, 0.1);
             color: #fbbf24;
-            font-size: 5.5px; /* Reduzido para caber os dois andares */
+            font-size: 5.5px;
             padding: 1px 3px;
             border-radius: 3px;
             font-weight: 900;
@@ -54,7 +54,7 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
             display: inline-flex;
-            flex-direction: column; /* Estilo de dois andares */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             vertical-align: middle;
@@ -145,6 +145,7 @@
                         <option value="">Time</option>
                         <option value="branco">Time Branco</option>
                         <option value="preto">Time Preto</option>
+                        <option value="empate">Empate</option>
                     </select>
                 </div>
                 <div class="flex gap-2">
@@ -206,24 +207,33 @@
                     for (let p of todasAsPartidas) {
                         const noBranco = p.branco.includes(d.id), noPreto = p.preto.includes(d.id);
                         if (noBranco || noPreto) {
-                            const ganhou = ((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto'));
+                            const empate = p.vencedor === 'empate';
+                            const ganhou = !empate && ((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto'));
                             const amistoso = p.modo === 'amistoso';
 
                             if (histForma.length < 5) {
-                                histForma.push(amistoso ? 'a' : (ganhou ? 'v' : 'd'));
+                                histForma.push(amistoso ? 'a' : (empate ? 'e' : (ganhou ? 'v' : 'd')));
                             }
 
                             if(!amistoso) {
-                                if(ganhou) { countingJejum = false; if(countingInvict) invict++; }
-                                else { countingInvict = false; if(countingJejum) jejum++; }
+                                if(empate) {
+                                    countingInvict = true;
+                                    countingJejum = false;
+                                } else if(ganhou) { 
+                                    countingJejum = false; 
+                                    if(countingInvict) invict++; 
+                                } else { 
+                                    countingInvict = false; 
+                                    if(countingJejum) jejum++; 
+                                }
                             }
                         }
                     }
                     
                     const vit5 = histForma.filter(x => x === 'v').length;
-                    const totalJ = (j.v || 0) + (j.d || 0);
+                    const totalJ = (j.v || 0) + (j.d || 0) + (j.e || 0);
                     dadosJogadores.push({ 
-                        ...j, id: d.id, v: j.v || 0, d: j.d || 0, saldo: j.saldo || 0, 
+                        ...j, id: d.id, v: j.v || 0, d: j.d || 0, e: j.e || 0, saldo: j.saldo || 0, 
                         totalJ: totalJ, recentes: vit5, invict, jejum,
                         aprov: totalJ > 0 ? (j.v || 0) / totalJ : 0,
                         hist: [...histForma].reverse() 
@@ -238,9 +248,13 @@
                         copiaParaAnterior.forEach(j => {
                             const noB = ultimaPartida.branco.includes(j.id), noP = ultimaPartida.preto.includes(j.id);
                             if(noB || noP) {
-                                const ganhou = (noB && ultimaPartida.vencedor === 'branco') || (noP && ultimaPartida.vencedor === 'preto');
-                                ganhou ? (j.v--, j.saldo--, j.invict--) : (j.d--, j.saldo++, j.jejum--);
-                                j.totalJ = j.v + j.d;
+                                if (ultimaPartida.vencedor === 'empate') {
+                                    j.e--;
+                                } else {
+                                    const ganhou = (noB && ultimaPartida.vencedor === 'branco') || (noP && ultimaPartida.vencedor === 'preto');
+                                    ganhou ? (j.v--, j.saldo--, j.invict--) : (j.d--, j.saldo++, j.jejum--);
+                                }
+                                j.totalJ = j.v + j.d + j.e;
                                 j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
                             }
                         });
@@ -277,9 +291,13 @@
                 const ultima = todasAsPartidas[0];
                 copiaParaAnterior.forEach(j => {
                     if(ultima.branco.includes(j.id) || ultima.preto.includes(j.id)) {
-                         const ganhou = (ultima.branco.includes(j.id) && ultima.vencedor === 'branco') || (ultima.preto.includes(j.id) && ultima.vencedor === 'preto');
-                         ganhou ? (j.v--, j.saldo--) : (j.d--, j.saldo++);
-                         j.totalJ = j.v + j.d;
+                         if (ultima.vencedor === 'empate') {
+                             j.e--;
+                         } else {
+                             const ganhou = (ultima.branco.includes(j.id) && ultima.vencedor === 'branco') || (ultima.preto.includes(j.id) && ultima.vencedor === 'preto');
+                             ganhou ? (j.v--, j.saldo--) : (j.d--, j.saldo++);
+                         }
+                         j.totalJ = j.v + j.d + j.e;
                          j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
                     }
                 });
@@ -343,12 +361,11 @@
                 }
 
                 let bolinhas = j.hist.concat(Array(5).fill('')).slice(0,5).map(res => {
-                    const cor = res === 'v' ? 'bg-emerald-500' : (res === 'd' ? 'bg-red-600' : (res === 'a' ? 'bg-slate-500' : 'bg-white/5'));
+                    const cor = res === 'v' ? 'bg-emerald-500' : (res === 'd' ? 'bg-red-600' : (res === 'e' ? 'bg-amber-500' : (res === 'a' ? 'bg-slate-500' : 'bg-white/5')));
                     return `<span class="w-1.5 h-1.5 rounded-full ${cor}"></span>`;
                 }).join('');
 
                 const emojiFogo = j.invict >= 3 ? ' 🔥' : '';
-                /* PATCH ATUALIZADO PARA DOIS ANDARES */
                 const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao"><span>Campeão</span><span>2025</span></span>' : '';
 
                 return `
@@ -376,18 +393,26 @@
             container.innerHTML = todasAsPartidas.map((p, index) => {
                 const nomesB = p.branco.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
                 const nomesP = p.preto.map(id => dadosJogadores.find(j => j.id === id)?.nome || "---");
+                
+                const modoExibicao = p.modo === 'normal' ? '' : p.modo;
+                const infoExtra = p.penaltis ? 'PÊNALTIS' : modoExibicao;
+                const tagInfoExtra = infoExtra ? `<span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-300 uppercase italic">${infoExtra}</span>` : '';
+                
+                const vencedorTexto = p.vencedor === 'empate' ? 'EMPATE' : p.vencedor;
+                const bgVencedor = p.vencedor === 'empate' ? 'bg-slate-700 text-white' : (p.vencedor === 'branco' ? 'bg-white text-slate-900' : 'bg-black text-white');
+
                 return `
                     <div class="glass overflow-hidden rounded-xl border border-white/20 shadow-2xl">
                         <div class="bg-black/30 px-3 py-2 flex justify-between items-center border-b border-white/10">
                             <span class="text-[9px] font-black text-slate-200 uppercase tracking-widest">${p.data.split('-').reverse().join('/')} - Rodada ${todasAsPartidas.length - index}</span>
-                            <span class="text-[8px] font-black px-1.5 py-0.5 rounded bg-white/10 text-slate-300 uppercase italic">${p.modo}</span>
+                            ${tagInfoExtra}
                         </div>
                         <div class="p-4 grid grid-cols-2 gap-4 relative text-center">
                             <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-white/20 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black text-white italic z-10">VS</div>
                             <div><div class="bg-white rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-slate-900 tracking-widest">Branco</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesB.join('<br>')}</p></div>
                             <div><div class="bg-black rounded-lg p-1 mb-2 text-[10px] font-black uppercase text-white tracking-widest">Preto</div><p class="text-[11px] text-slate-100 leading-relaxed font-bold">${nomesP.join('<br>')}</p></div>
                         </div>
-                        <div class="px-3 py-2.5 ${p.vencedor === 'branco' ? 'bg-white text-slate-900' : 'bg-black text-white'} text-center border-t border-white/10 text-[9px] font-bold uppercase tracking-[0.4em]">Vencedor: ${p.vencedor}</div>
+                        <div class="px-3 py-2.5 ${bgVencedor} text-center border-t border-white/10 text-[9px] font-bold uppercase tracking-[0.4em]">Resultado: ${vencedorTexto}</div>
                     </div>`;
             }).join('');
         }
@@ -409,10 +434,15 @@
             copia.forEach(j => {
                 const noB = simBranco.includes(j.id), noP = simPreto.includes(j.id);
                 if(noB || noP) {
-                    const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                    ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0);
+                    if (vencedor === 'empate') {
+                        j.e++;
+                        j.hist.push('e');
+                    } else {
+                        const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
+                        ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0);
+                    }
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
-                    j.totalJ = j.v + j.d;
+                    j.totalJ = j.v + j.d + j.e;
                     j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
                 }
             });
