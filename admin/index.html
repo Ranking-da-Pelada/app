@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin | Pelada 2026</title>
     <link rel="manifest" href="pwa_admin.json">
-    <link rel="icon" type="image/png" href="icone_admin.png">
+    <link class="w-3 h-3" rel="icon" type="image/png" href="icone_admin.png">
     <meta name="theme-color" content="#ef4444">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -14,7 +14,7 @@
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
         .sugestao-item:hover { background: rgba(16, 185, 129, 0.2); }
         .pos-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
-        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 40px 40px; gap: 5px; width: 100%; }
+        .grid-form-jogadores { display: grid; grid-template-columns: 1fr 50px; gap: 5px; width: 100%; }
         .col-stats { width: 35px; text-align: center; flex-shrink: 0; }
         .player-tag { cursor: pointer; transition: all 0.2s; }
         .player-tag:hover { background: #ef4444; color: white; }
@@ -63,6 +63,7 @@
                             <select id="vencedor" class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 text-xs font-bold outline-none">
                                 <option value="branco">VITÓRIA BRANCO</option>
                                 <option value="preto">VITÓRIA PRETO</option>
+                                <option value="empate">EMPATE</option>
                             </select>
                         </div>
                         <div class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border border-white/10">
@@ -83,8 +84,7 @@
                     </h2>
                     <div class="grid-form-jogadores mb-6">
                         <input type="hidden" id="edit-id">
-                        <input type="text" id="add-nome" placeholder="Nome" class="bg-slate-800/50 px-3 py-2 rounded-lg border border-white/10 outline-none text-sm w-full">
-                        <input type="text" id="add-apelido" placeholder="GT" class="bg-slate-800/50 px-1 py-2 rounded-lg border border-white/10 text-center uppercase font-bold text-[9px] w-full">
+                        <input type="text" id="add-nome" placeholder="Nome do Jogador" class="bg-slate-800/50 px-3 py-2 rounded-lg border border-white/10 outline-none text-sm w-full">
                         <button id="btn-salvar-jogador" onclick="salvarNovoJogador()" class="bg-emerald-600 rounded-lg font-bold text-[9px] uppercase w-full">OK</button>
                     </div>
                     <div id="lista-jogadores" class="space-y-2"></div>
@@ -145,22 +145,22 @@
                     if (noB || noP) {
                         pj++;
                         if (count < 5) {
-                            const ganhou = (noB && p.vencedor === 'branco') || (noP && p.vencedor === 'preto');
+                            const ganhou = p.vencedor !== 'empate' && ((noB && p.vencedor === 'branco') || (noP && p.vencedor === 'preto'));
                             if (ganhou && p.modo !== 'amistoso') vRecente += Math.pow(2, 5 - count);
                             count++;
                         }
                     }
                 });
-                cacheJogadores.push({ id: jId, ...j, totalJ: pj, saldo: j.saldo || 0, v: j.v || 0, vRecente: vRecente });
+                cacheJogadores.push({ id: jId, ...j, totalJ: pj, saldo: j.saldo || 0, v: j.v || 0, e: j.e || 0, vRecente: vRecente });
             });
             const jogadoresOrdenados = [...cacheJogadores].sort((a, b) => (b.saldo - a.saldo) || (b.v - a.v) || (b.vRecente - a.vRecente) || a.nome.localeCompare(b.nome));
             let pos = 1;
             jogadoresOrdenados.forEach(j => {
                 lista.innerHTML += `
                     <div class="p-3 rounded-xl flex items-center justify-between border border-white/5 bg-white/5">
-                        <div class="flex items-center gap-3"><span class="text-[10px] font-black text-emerald-500">${j.apelido || 'GT'}</span><span class="text-xs font-bold uppercase">${j.nome}</span></div>
+                        <div class="flex items-center gap-3"><span class="text-xs font-bold uppercase">${j.nome}</span></div>
                         <div class="flex gap-2">
-                            <button onclick="prepararEdicao('${j.id}', '${j.nome}', '${j.apelido}')" class="p-2 bg-slate-800 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-3 h-3"></i></button>
+                            <button onclick="prepararEdicao('${j.id}', '${j.nome}')" class="p-2 bg-slate-800 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-3 h-3"></i></button>
                             <button onclick="toggleVis('${j.id}', ${j.visivel})" class="p-2 bg-slate-800 rounded-lg ${j.visivel ? 'text-emerald-500' : 'text-slate-600'}"><i data-lucide="${j.visivel ? 'eye' : 'eye-off'}" class="w-3 h-3"></i></button>
                             <button onclick="excluirJogador('${j.id}')" class="p-2 bg-red-900/20 rounded-lg text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                         </div>
@@ -185,7 +185,7 @@
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
                             <span class="text-[8px] text-slate-500 font-bold">${p.data.split('-').reverse().join('/')}</span>
-                            <span class="font-black text-emerald-500 uppercase italic">Vencedor: ${p.vencedor} ${p.penaltis ? '(penaltis)' : ''}</span>
+                            <span class="font-black text-emerald-500 uppercase italic">Resultado: ${p.vencedor.toUpperCase()} ${p.penaltis ? '(penaltis)' : ''}</span>
                         </div>
                     <div class="flex gap-2"><button onclick="excluirPartida('${p.id}')" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button></div></div>
                     <div class="grid grid-cols-1 gap-1 border-t border-white/5 pt-2">
@@ -196,14 +196,14 @@
         }
         window.baixarBackup = () => {
             if (!cacheJogadores.length && !todasAsPartidas.length) return alert("Não há dados!");
-            let relatorio = `=== BACKUP PELADA 2026 ===\nGerado em: ${new Date().toLocaleString('pt-BR')}\n-------------------------------------------\n\nRANKING ATUAL:\nNOME            | GT   | SALDO | V | JOGOS\n`;
-            const rankingResumo = [...cacheJogadores].sort((a,b) => b.saldo - a.saldo);
-            rankingResumo.forEach(j => { relatorio += `${j.nome.padEnd(15).substring(0,15)} | ${j.apelido.padEnd(4).substring(0,4)} | ${String(j.saldo).padStart(5)} | ${String(j.v).padStart(1)} | ${j.totalJ}\n`; });
+            let relatorio = `=== BACKUP PELADA 2026 ===\nGerado em: ${new Date().toLocaleString('pt-BR')}\n-------------------------------------------\n\nRANKING ATUAL:\nNOME            | SALDO | V | E | D | JOGOS\n`;
+            const rankingResSummary = [...cacheJogadores].sort((a,b) => b.saldo - a.saldo);
+            rankingResSummary.forEach(j => { relatorio += `${j.nome.padEnd(15).substring(0,15)} | ${String(j.saldo).padStart(5)} | ${String(j.v).padStart(1)} | ${String(j.e).padStart(1)} | ${String(j.totalJ - j.v - j.e).padStart(1)} | ${j.totalJ}\n`; });
             relatorio += `\n-------------------------------------------\n\nHISTÓRICO DE PARTIDAS:\n`;
             todasAsPartidas.forEach(p => {
                 const nomesB = p.branco.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
                 const nomesP = p.preto.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
-                relatorio += `DATA: ${p.data.split('-').reverse().join('/')}\nVENCEDOR: ${p.vencedor.toUpperCase()} ${p.penaltis ? '(PEN)' : ''} | MODO: ${p.modo}\nBRANCO: ${nomesB}\nPRETO:  ${nomesP}\n-------------------\n`;
+                relatorio += `DATA: ${p.data.split('-').reverse().join('/')}\nRESULTADO: ${p.vencedor.toUpperCase()} ${p.penaltis ? '(PEN)' : ''} | MODO: ${p.modo}\nBRANCO: ${nomesB}\nPRETO:  ${nomesP}\n-------------------\n`;
             });
             const dadosBrutos = { timestamp: new Date().toISOString(), jogadores: cacheJogadores, partidas: todasAsPartidas };
             relatorio += `\n\n### RESTAURAR_SISTEMA_NAO_EDITAR_ABAIXO ###\n${JSON.stringify(dadosBrutos)}`;
@@ -219,9 +219,14 @@
             const pRef = doc(collection(db, "partidas"));
             batch.set(pRef, { data, branco: timeB, preto: timeP, vencedor: vence, modo, penaltis, timestamp: Date.now() });
             if(modo !== 'amistoso') {
-                const win = vence === 'branco' ? timeB : timeP, lose = vence === 'branco' ? timeP : timeB;
-                win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1) }));
-                if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1) }));
+                if(vence === 'empate') {
+                    timeB.forEach(id => batch.update(doc(db, "jogadores", id), { e: increment(1) }));
+                    timeP.forEach(id => batch.update(doc(db, "jogadores", id), { e: increment(1) }));
+                } else {
+                    const win = vence === 'branco' ? timeB : timeP, lose = vence === 'branco' ? timeP : timeB;
+                    win.forEach(id => batch.update(doc(db, "jogadores", id), { v: increment(1), saldo: increment(1) }));
+                    if(modo === 'normal') lose.forEach(id => batch.update(doc(db, "jogadores", id), { d: increment(1), saldo: increment(-1) }));
+                }
             }
             await batch.commit(); location.reload();
         };
@@ -232,14 +237,19 @@
                 let batch = writeBatch(db);
                 const { vencedor, modo, branco, preto } = pSnap;
                 if (modo !== 'amistoso') {
-                    const win = vencedor === 'branco' ? branco : preto, lose = vencedor === 'branco' ? preto : branco;
-                    win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
-                    if (modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
+                    if (vencedor === 'empate') {
+                        branco.forEach(jId => batch.update(doc(db, "jogadores", jId), { e: increment(-1) }));
+                        preto.forEach(jId => batch.update(doc(db, "jogadores", jId), { e: increment(-1) }));
+                    } else {
+                        const win = vencedor === 'branco' ? branco : preto, lose = vencedor === 'branco' ? preto : branco;
+                        win.forEach(jId => batch.update(doc(db, "jogadores", jId), { v: increment(-1), saldo: increment(-1) }));
+                        if (modo === 'normal') lose.forEach(jId => batch.update(doc(db, "jogadores", jId), { d: increment(-1), saldo: increment(1) }));
+                    }
                 }
                 batch.delete(doc(db, "partidas", id)); await batch.commit(); location.reload();
             }
         };
-        window.resetarTudo = async () => { if(confirm("Zerar ranking?")) { const batch = writeBatch(db); cacheJogadores.forEach(j => batch.update(doc(db, "jogadores", j.id), { v: 0, d: 0, saldo: 0 })); todasAsPartidas.forEach(p => batch.delete(doc(db, "partidas", p.id))); await batch.commit(); location.reload(); } };
+        window.resetarTudo = async () => { if(confirm("Zerar ranking?")) { const batch = writeBatch(db); cacheJogadores.forEach(j => batch.update(doc(db, "jogadores", j.id), { v: 0, d: 0, e: 0, saldo: 0 })); todasAsPartidas.forEach(p => batch.delete(doc(db, "partidas", p.id))); await batch.commit(); location.reload(); } };
         window.removerDaLista = (id, tagsId) => { if(tagsId === 'tags-branco') timeB = timeB.filter(x => x !== id); else timeP = timeP.filter(x => x !== id); renderizarTags(); };
         function renderizarTags() {
             const bBox = document.getElementById('tags-branco'), pBox = document.getElementById('tags-preto'); bBox.innerHTML = ''; pBox.innerHTML = '';
@@ -255,14 +265,14 @@
             }); box.classList.remove('hidden');
         };
         window.salvarNovoJogador = async () => {
-            const id = document.getElementById('edit-id').value, n = document.getElementById('add-nome').value, gt = document.getElementById('add-apelido').value.toUpperCase();
-            if(!n || !gt) return;
-            if(id) await updateDoc(doc(db, "jogadores", id), { nome: n, apelido: gt });
-            else await addDoc(collection(db, "jogadores"), { nome: n, apelido: gt, v: 0, d: 0, saldo: 0, visivel: true });
+            const id = document.getElementById('edit-id').value, n = document.getElementById('add-nome').value;
+            if(!n) return;
+            if(id) await updateDoc(doc(db, "jogadores", id), { nome: n });
+            else await addDoc(collection(db, "jogadores"), { nome: n, v: 0, d: 0, e: 0, saldo: 0, visivel: true });
             location.reload();
         };
         window.toggleVis = async (id, s) => { await updateDoc(doc(db, "jogadores", id), { visivel: !s }); location.reload(); };
-        window.prepararEdicao = (id, n, a) => { document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; document.getElementById('add-apelido').value = a; };
+        window.prepararEdicao = (id, n) => { document.getElementById('edit-id').value = id; document.getElementById('add-nome').value = n; };
         window.excluirJogador = async (id) => { if(confirm("Eliminar jogador?")) { await deleteDoc(doc(db, "jogadores", id)); location.reload(); } };
         init();
     </script>
