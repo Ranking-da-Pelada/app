@@ -201,9 +201,9 @@
                 dadosJogadores = [];
                 jSnap.forEach(d => {
                     const j = d.data();
-                    let fontForma = [];
                     let histForma = [];
-                    let invict = 0, jejum = 0, countingInvict = true, countingJejum = true;
+                    let invict = 0, jejum = 0;
+                    let bInvict = true, bJejum = true;
                     
                     for (let p of todasAsPartidas) {
                         const noBranco = p.branco.includes(d.id), noPreto = p.preto.includes(d.id);
@@ -212,20 +212,22 @@
                             const ganhou = !empate && ((noBranco && p.vencedor === 'branco') || (noPreto && p.vencedor === 'preto'));
                             const amistoso = p.modo === 'amistoso';
 
+                            const letraResultado = amistoso ? 'a' : (empate ? 'e' : (ganhou ? 'v' : 'd'));
+
                             if (histForma.length < 5) {
-                                histForma.push(amistoso ? 'a' : (empate ? 'e' : (ganhou ? 'v' : 'd')));
+                                histForma.push(letraResultado);
                             }
 
-                            if(!amistoso) {
-                                if(empate) {
-                                    countingInvict = true;
-                                    countingJejum = false;
-                                } else if(ganhou) { 
-                                    countingJejum = false; 
-                                    if(countingInvict) invict++; 
-                                } else { 
-                                    countingInvict = false; 
-                                    if(countingJejum) jejum++; 
+                            if (!amistoso) {
+                                if (ganhou) {
+                                    bJejum = false;
+                                    if (bInvict) invict++;
+                                } else if (empate) {
+                                    bInvict = false;
+                                    bJejum = false;
+                                } else {
+                                    bInvict = false;
+                                    if (bJejum) jejum++;
                                 }
                             }
                         }
@@ -366,7 +368,10 @@
                     return `<span class="w-1.5 h-1.5 rounded-full ${cor}"></span>`;
                 }).join('');
 
-                const emojiFogo = j.invict >= 3 ? ' 🔥' : '';
+                let statusEmoji = '';
+                if (j.invict >= 3) statusEmoji = ' 🔥';
+                else if (j.jejum >= 3) statusEmoji = ' 💩';
+
                 const patchCampeao = j.nome === "Guerra" ? '<span class="patch-campeao"><span>Campeão</span><span>2025</span></span>' : '';
 
                 return `
@@ -375,7 +380,7 @@
                         <td class="py-3 pl-2">
                             <div class="flex items-center">
                                 ${setaMov}
-                                <span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}${emojiFogo}</span>
+                                <span class="font-black uppercase player-name tracking-tighter text-slate-100">${j.nome}${statusEmoji}</span>
                                 ${patchCampeao}
                             </div>
                         </td>
@@ -438,9 +443,15 @@
                     if (vencedor === 'empate') {
                         j.e++;
                         j.hist.push('e');
+                        j.invict = 0;
+                        j.jejum = 0;
                     } else {
                         const ganhou = (noB && vencedor === 'branco') || (noP && vencedor === 'preto');
-                        ganhou ? (j.v++, j.saldo++, j.hist.push('v'), j.invict++) : (j.d++, j.saldo--, j.hist.push('d'), j.invict = 0);
+                        if (ganhou) {
+                            j.v++; j.saldo++; j.hist.push('v'); j.invict++; j.jejum = 0;
+                        } else {
+                            j.d++; j.saldo--; j.hist.push('d'); j.jejum++; j.invict = 0;
+                        }
                     }
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
                     j.totalJ = j.v + j.d + j.e;
