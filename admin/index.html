@@ -151,7 +151,8 @@
                         }
                     }
                 });
-                cacheJogadores.push({ id: jId, ...j, totalJ: pj, saldo: j.saldo || 0, v: j.v || 0, e: j.e || 0, vRecente: vRecente });
+                const totalJ = (j.v || 0) + (j.d || 0) + (j.e || 0);
+                cacheJogadores.push({ id: jId, ...j, totalJ: totalJ, saldo: j.saldo || 0, v: j.v || 0, d: j.d || 0, e: j.e || 0, vRecente: vRecente });
             });
             const jogadoresOrdenados = [...cacheJogadores].sort((a, b) => (b.saldo - a.saldo) || (b.v - a.v) || (b.vRecente - a.vRecente) || a.nome.localeCompare(b.nome));
             let pos = 1;
@@ -198,8 +199,7 @@
             if (!cacheJogadores.length && !todasAsPartidas.length) return alert("Não há dados!");
             let relatorio = `=== BACKUP PELADA 2026 ===\nGerado em: ${new Date().toLocaleString('pt-BR')}\n-------------------------------------------\n\nRANKING ATUAL:\nNOME            | SALDO | V | E | D | JOGOS\n`;
             const rankingResSummary = [...cacheJogadores].sort((a,b) => b.saldo - a.saldo);
-            rankingResSummary.forEach(j => { relatorio += `${j.nome.padEnd(15).substring(0,15)} | ${String(j.saldo).padStart(5)} | ${String(j.v).padStart(1)} | ${String(j.e).padStart(1)} | ${String(j.totalJ - j.v - j.e).padStart(1)} | ${j.totalJ}\n`; });
-            relatorio += `\n-------------------------------------------\n\nHISTÓRICO DE PARTIDAS:\n`;
+            rankingResSummary.forEach(j => { relatorio += `${j.nome.padEnd(15).substring(0,15)} | ${String(j.saldo).padStart(5)} | ${String(j.v).padStart(1)} | ${String(j.e).padStart(1)} | ${String(j.d || 0).padStart(1)} | ${j.totalJ}\n`; });            relatorio += `\n-------------------------------------------\n\nHISTÓRICO DE PARTIDAS:\n`;
             todasAsPartidas.forEach(p => {
                 const nomesB = p.branco.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
                 const nomesP = p.preto.map(id => cacheJogadores.find(j => j.id === id)?.nome || "Removido").join(", ");
