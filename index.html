@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ranking da Pelada | 2026</title>
-    <link rel="icon" type="image/png" href="/app/icone.png">
+    <link class="js-meta-tag" rel="icon" type="image/png" href="/app/icone.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -234,11 +234,12 @@
                     }
                     
                     const vit5 = histForma.filter(x => x === 'v').length;
-                    const totalJ = (j.v || 0) + (j.d || 0) + (j.e || 0);
+                    const v = j.v || 0, dReal = j.d || 0, e = j.e || 0;
+                    const totalJ = v + dReal + e;
                     dadosJogadores.push({ 
-                        ...j, id: d.id, v: j.v || 0, d: j.d || 0, e: j.e || 0, saldo: j.saldo || 0, 
+                        ...j, id: d.id, v: v, d: dReal, e: e, saldo: j.saldo || 0, 
                         totalJ: totalJ, recentes: vit5, invict, jejum,
-                        aprov: totalJ > 0 ? (j.v || 0) / totalJ : 0,
+                        aprov: totalJ > 0 ? ((v * 3) + e) / (totalJ * 3) : 0,
                         hist: [...histForma].reverse() 
                     });
                 });
@@ -258,21 +259,21 @@
                                     ganhou ? (j.v--, j.saldo--, j.invict--) : (j.d--, j.saldo++, j.jejum--);
                                 }
                                 j.totalJ = j.v + j.d + j.e;
-                                j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
+                                j.aprov = j.totalJ > 0 ? ((j.v * 3) + j.e) / (j.totalJ * 3) : 0;
                             }
                         });
                     }
                     rankingAnterior = aplicarSort(copiaParaAnterior.filter(j => j.visivel !== false));
                 }
 
-                atualizarIndicadoresVisuais();
+                atualizarIndicatorsVisuais();
                 renderizarRanking(dadosJogadores, 'tabela-body', rankingAnterior);
                 renderizarHistorico();
                 popularSelects();
             } catch (err) { console.error(err); }
         }
 
-        function atualizarIndicadoresVisuais() {
+        function atualizarIndicatorsVisuais() {
             const mapeamento = { 'saldo': 'S', 'v': 'V', 'd': 'D', 'totalJ': 'P', 'aprov': '%', 'recentes': 'Recentes' };
             Object.keys(mapeamento).forEach(c => {
                 const th = document.querySelector(`th[onclick="ordenar('${c}')"]`);
@@ -287,7 +288,7 @@
         window.ordenar = (campo) => {
             if (ordenacaoAtual.campo === campo) ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
             else { ordenacaoAtual.campo = campo; ordenacaoAtual.crescente = false; }
-            atualizarIndicadoresVisuais();
+            atualizarIndicatorsVisuais();
             
             const copiaParaAnterior = JSON.parse(JSON.stringify(dadosJogadores));
             if(todasAsPartidas.length > 0 && todasAsPartidas[0].modo !== 'amistoso') {
@@ -298,10 +299,10 @@
                              j.e--;
                          } else {
                              const ganhou = (ultima.branco.includes(j.id) && ultima.vencedor === 'branco') || (ultima.preto.includes(j.id) && ultima.vencedor === 'preto');
-                             ganhou ? (j.v--, j.saldo--) : (j.d--, j.saldo++);
+                             ganhou ? (j.v--, j.saldo--) : (j.d++, j.saldo++);
                          }
                          j.totalJ = j.v + j.d + j.e;
-                         j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
+                         j.aprov = j.totalJ > 0 ? ((j.v * 3) + j.e) / (j.totalJ * 3) : 0;
                     }
                 });
             }
@@ -455,7 +456,7 @@
                     }
                     j.hist.shift(); j.recentes = j.hist.filter(x => x === 'v').length; 
                     j.totalJ = j.v + j.d + j.e;
-                    j.aprov = j.totalJ > 0 ? j.v / j.totalJ : 0;
+                    j.aprov = j.totalJ > 0 ? ((j.v * 3) + j.e) / (j.totalJ * 3) : 0;
                 }
             });
 
